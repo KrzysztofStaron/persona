@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+You're not allowed to start development server, don't do "pnpm run dev" or any varaitions of it
+
+
+The project is targetet to be dark-mode only
