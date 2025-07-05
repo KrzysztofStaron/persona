@@ -184,7 +184,7 @@ const DebugButton: React.FC<DebugButtonProps> = ({ onRegenerate }) => {
             <Button onClick={handleRegenerateCancel} className="bg-zinc-600 hover:bg-zinc-700 text-white">
               Cancel
             </Button>
-            <Button onClick={handleRegenerateSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleRegenerateSubmit} className="bg-accent hover:bg-accent/80 text-white">
               Regenerate
             </Button>
           </DialogFooter>

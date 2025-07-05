@@ -101,7 +101,7 @@ const PersonaGrid: React.FC = () => {
             <button
               onClick={handleGenerateWithTheme}
               disabled={!theme.trim()}
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-accent hover:bg-accent/80 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
             >
               Generate
             </button>
@@ -171,7 +171,7 @@ const PersonaGrid: React.FC = () => {
             <Button onClick={handleRegenerateCancel} className="bg-zinc-600 hover:bg-zinc-700 text-white">
               Cancel
             </Button>
-            <Button onClick={handleRegenerateSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handleRegenerateSubmit} className="bg-accent hover:bg-accent/80 text-white">
               Regenerate
             </Button>
           </DialogFooter>
