@@ -17,6 +17,7 @@ interface PersonaContextType {
   generateAll: (forceRegenerate?: boolean) => Promise<void>;
   handleRegenerate: () => void;
   getStatusMessage: () => string | null;
+  updatePersona: (index: number, updatedPersona: Persona) => void;
 }
 
 const PersonaContext = createContext<PersonaContextType | undefined>(undefined);
@@ -135,6 +136,21 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
     }
   }, [isClientMounted]);
 
+  const updatePersona = (index: number, updatedPersona: Persona) => {
+    setPersonas(prevPersonas => {
+      const newPersonas = [...prevPersonas];
+      newPersonas[index] = updatedPersona;
+
+      // Update cache with new personas
+      const currentCache = devCache.load();
+      if (currentCache) {
+        devCache.save(newPersonas, currentCache.avatars);
+      }
+
+      return newPersonas;
+    });
+  };
+
   const contextValue: PersonaContextType = {
     personas,
     isGeneratingPersonas,
@@ -146,6 +162,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
     generateAll,
     handleRegenerate,
     getStatusMessage,
+    updatePersona,
   };
 
   return <PersonaContext.Provider value={contextValue}>{children}</PersonaContext.Provider>;

@@ -3,16 +3,20 @@
 import React, { useState, useEffect } from "react";
 import { Persona } from "@/types/persona";
 import { chatWithPersona } from "@/app/actions/chatWithPersona";
+import { generatePersonas } from "@/app/actions/generatePersonas";
+import { generateAvatar } from "@/app/actions/generateAvatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { devCache } from "@/lib/devCache";
+import { RefreshCw } from "lucide-react";
 
 interface PersonaChatProps {
   persona: Persona;
   isOpen: boolean;
   onClose: () => void;
+  onPersonaUpdated?: (updatedPersona: Persona) => void;
 }
 
 type ChatMessage = {
@@ -21,10 +25,11 @@ type ChatMessage = {
   timestamp: number;
 };
 
-const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) => {
+const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onPersonaUpdated }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
 
   // Generate a unique persona ID based on name and characteristics
   const personaId = `${persona.name}-${persona.age}-${persona.personality.join("-")}`;
@@ -39,6 +44,38 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) =
 
   const saveMessage = (message: ChatMessage) => {
     devCache.saveChatMessage(persona.name, personaId, message);
+  };
+
+  const handleRegeneratePersona = async () => {
+    setIsRegenerating(true);
+
+    try {
+      // Generate a new persona
+      const newPersonas = await generatePersonas(1);
+      if (newPersonas.length > 0) {
+        const newPersona = newPersonas[0];
+
+        // Generate avatar for the new persona
+        const avatarUrl = await generateAvatar(newPersona);
+        const updatedPersona = {
+          ...newPersona,
+          image: avatarUrl || "",
+        };
+
+        // Clear chat history for the old persona
+        devCache.clearChatHistory(persona.name, personaId);
+        setMessages([]);
+
+        // Notify parent component about the updated persona
+        if (onPersonaUpdated) {
+          onPersonaUpdated(updatedPersona);
+        }
+      }
+    } catch (error) {
+      console.error("Error regenerating persona:", error);
+    } finally {
+      setIsRegenerating(false);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -115,6 +152,25 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) =
                 {messages.length > 0 && <span className="ml-2 text-xs">• {messages.length} messages</span>}
               </DialogDescription>
             </div>
+            <Button
+              onClick={handleRegeneratePersona}
+              variant="outline"
+              size="sm"
+              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+              disabled={isRegenerating}
+            >
+              {isRegenerating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Regenerating...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Regenerate
+                </>
+              )}
+            </Button>
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {persona.personality.map((trait, index) => (

@@ -6,10 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Persona } from "@/types/persona";
 import PersonaChat from "./PersonaChat";
+import { usePersonaContext } from "@/contexts/PersonaContext";
 
-const PersonaCard = ({ persona }: { persona: Persona }) => {
+interface PersonaCardProps {
+  persona: Persona;
+  personaIndex: number;
+}
+
+const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const { updatePersona } = usePersonaContext();
 
   const handleCardClick = () => {
     setIsChatOpen(true);
@@ -17,6 +24,10 @@ const PersonaCard = ({ persona }: { persona: Persona }) => {
 
   const handleCloseChat = () => {
     setIsChatOpen(false);
+  };
+
+  const handlePersonaUpdated = (updatedPersona: Persona) => {
+    updatePersona(personaIndex, updatedPersona);
   };
 
   const handleCopyJson = async (e: React.MouseEvent) => {
@@ -106,7 +117,12 @@ const PersonaCard = ({ persona }: { persona: Persona }) => {
         </CardContent>
       </Card>
 
-      <PersonaChat persona={persona} isOpen={isChatOpen} onClose={handleCloseChat} />
+      <PersonaChat
+        persona={persona}
+        isOpen={isChatOpen}
+        onClose={handleCloseChat}
+        onPersonaUpdated={handlePersonaUpdated}
+      />
     </>
   );
 };

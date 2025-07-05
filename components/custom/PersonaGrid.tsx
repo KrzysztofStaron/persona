@@ -2,6 +2,7 @@
 
 import React from "react";
 import PersonaCard from "./PersonaCard";
+import PersonaCardSkeleton from "./PersonaCardSkeleton";
 import DebugButton from "./DebugButton";
 import { usePersonaContext } from "@/contexts/PersonaContext";
 import { devCache } from "@/lib/devCache";
@@ -16,9 +17,12 @@ const PersonaGrid: React.FC = () => {
     generateAll,
     handleRegenerate,
     getStatusMessage,
+    isGeneratingPersonas,
+    isGeneratingAvatars,
   } = usePersonaContext();
 
   const statusMessage = getStatusMessage();
+  const isLoading = isGeneratingPersonas || isGeneratingAvatars;
 
   return (
     <>
@@ -34,9 +38,14 @@ const PersonaGrid: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
-        {personas.map((persona, index) => (
-          <PersonaCard key={`${persona.name}-${index}`} persona={persona} />
-        ))}
+        {personas.length > 0
+          ? personas.map((persona, index) => (
+              <PersonaCard key={`${persona.name}-${index}`} persona={persona} personaIndex={index} />
+            ))
+          : isLoading
+          ? // Show skeleton cards while loading
+            Array.from({ length: 4 }).map((_, index) => <PersonaCardSkeleton key={`skeleton-${index}`} />)
+          : null}
       </div>
 
       {error && (

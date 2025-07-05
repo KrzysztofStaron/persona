@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePersonaContext } from "@/contexts/PersonaContext";
 import { chatWithPersona } from "@/app/actions/chatWithPersona";
 import { OpenAI } from "openai";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Download } from "lucide-react";
 
 type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -63,10 +63,35 @@ const ChatWithAll = () => {
     setResponses([]);
   };
 
+  const handleDownloadPersonas = () => {
+    if (personas.length === 0) return;
+
+    const dataStr = JSON.stringify(personas, null, 2);
+    const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = `personas-${new Date().toISOString().split("T")[0]}.json`;
+
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", dataUri);
+    linkElement.setAttribute("download", exportFileDefaultName);
+    linkElement.click();
+  };
+
   return (
     <div className="mt-12">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-4">Chat with All Personas</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-white">Chat with All Personas</h2>
+          <Button
+            onClick={handleDownloadPersonas}
+            variant="outline"
+            className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+            disabled={personas.length === 0}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download Personas
+          </Button>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
           <input

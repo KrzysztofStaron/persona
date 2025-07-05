@@ -205,4 +205,21 @@ export const devCache = {
       console.warn("Failed to clear chats:", error);
     }
   },
+
+  clearChatHistory(personaName: string, personaId: string): void {
+    if (typeof window === "undefined") return;
+
+    try {
+      const chatStorage = this.loadChatStorage();
+      const chatId = `${personaName}-${personaId}`;
+
+      if (chatStorage[chatId]) {
+        delete chatStorage[chatId];
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatStorage));
+        console.log(`Chat history cleared for: ${personaName}`);
+      }
+    } catch (error) {
+      console.warn("Failed to clear chat history:", error);
+    }
+  },
 };
