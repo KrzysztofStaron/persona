@@ -85,7 +85,7 @@ const PersonaGrid: React.FC = () => {
       )}
 
       {/* Theme input field - shown when no personas and not loading */}
-      {personas.length === 0 && !isLoading && !error && (
+      {personas.length === 0 && !isLoading && (
         <div className="mb-8 p-6 bg-zinc-900 rounded-lg border border-zinc-800">
           <h2 className="text-xl font-semibold text-white mb-4">Create Your Personas</h2>
           <p className="text-zinc-400 mb-4">Enter a theme or topic to generate unique personas around. Be creative!</p>

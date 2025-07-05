@@ -69,6 +69,12 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
         return;
       }
 
+      // Only generate if explicitly requested (forceRegenerate = true)
+      if (!forceRegenerate) {
+        updateCacheStatus();
+        return;
+      }
+
       // Generate personas
       setIsGeneratingPersonas(true);
       const newPersonas = await generatePersonas(4, theme || "realistic");
