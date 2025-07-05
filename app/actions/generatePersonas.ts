@@ -7,9 +7,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function generatePersonas(count: number = 4, looks: string = "realistic"): Promise<Persona[]> {
+export async function generatePersonas(count: number = 4, theme: string = "realistic"): Promise<Persona[]> {
   try {
-    const prompt = `Generate ${count} unique ${looks} character personas. Don't make them 100% bad nor 100% good. Each should be a JSON object with the following structure:
+    const prompt = `Generate ${count} unique character personas based on the theme: "${theme}". Don't make them 100% bad nor 100% good. Each should be a JSON object with the following structure:
  characters: [
     {
   "name": "Character Name",
@@ -23,14 +23,14 @@ export async function generatePersonas(count: number = 4, looks: string = "reali
 }
   ]
 
-Make each character unique with diverse backgrounds, ages, and personalities. Focus on ${looks} themes. Ensure the "looks" field is detailed enough for AI image generation. Return as a JSON array.`;
+Make each character unique with diverse backgrounds, ages, and personalities. Focus on the "${theme}" theme. Ensure the "looks" field is detailed enough for AI image generation. Return as a JSON array.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
         {
           role: "system",
-          content: `You are a creative character designer. Generate unique, interesting ${looks} personas. Return valid JSON only.`,
+          content: `You are a creative character designer. Generate unique, interesting personas based on the theme: "${theme}". Return valid JSON only.`,
         },
         {
           role: "user",

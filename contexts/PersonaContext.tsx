@@ -14,7 +14,7 @@ interface PersonaContextType {
   isClientMounted: boolean;
   cacheExists: boolean;
   cacheExpirationHours: number;
-  generateAll: (forceRegenerate?: boolean) => Promise<void>;
+  generateAll: (forceRegenerate?: boolean, theme?: string) => Promise<void>;
   handleRegenerate: () => void;
   getStatusMessage: () => string | null;
   updatePersona: (index: number, updatedPersona: Persona) => void;
@@ -59,7 +59,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
     setCacheExpirationHours(getCacheExpirationHours());
   };
 
-  const generateAll = async (forceRegenerate = false) => {
+  const generateAll = async (forceRegenerate = false, theme?: string) => {
     try {
       setError(null);
 
@@ -71,7 +71,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
 
       // Generate personas
       setIsGeneratingPersonas(true);
-      const newPersonas = await generatePersonas(4);
+      const newPersonas = await generatePersonas(4, theme || "realistic");
       setPersonas(newPersonas);
       setIsGeneratingPersonas(false);
 
@@ -108,7 +108,6 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
     if (error) return error;
     if (isGeneratingPersonas) return "Creating unique personas...";
     if (isGeneratingAvatars) return "Generating avatars for each persona...";
-    if (personas.length === 0) return "Loading...";
     return null;
   };
 
@@ -132,7 +131,10 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
   useEffect(() => {
     if (isClientMounted) {
       updateCacheStatus();
-      generateAll();
+      // Only load from cache if it exists, don't auto-generate
+      if (devCache.exists()) {
+        loadFromCache();
+      }
     }
   }, [isClientMounted]);
 
