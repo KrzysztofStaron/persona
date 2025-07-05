@@ -6,7 +6,25 @@ interface CacheData {
   timestamp: number;
 }
 
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: number;
+};
+
+type ChatHistory = {
+  personaName: string;
+  personaId: string;
+  messages: ChatMessage[];
+  lastActivity: number;
+};
+
+type ChatStorage = {
+  [chatId: string]: ChatHistory;
+};
+
 const CACHE_KEY = "persona-dev-cache";
+const CHAT_STORAGE_KEY = "persona-chat-storage";
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
 export const devCache = {
@@ -87,6 +105,104 @@ export const devCache = {
       return Date.now() - cacheData.timestamp <= CACHE_DURATION;
     } catch (error) {
       return false;
+    }
+  },
+
+  // Chat Storage Functions
+  saveChatMessage(personaName: string, personaId: string, message: ChatMessage): void {
+    if (typeof window === "undefined") return;
+
+    try {
+      const chatStorage = this.loadChatStorage();
+      const chatId = `${personaName}-${personaId}`;
+
+      if (!chatStorage[chatId]) {
+        chatStorage[chatId] = {
+          personaName,
+          personaId,
+          messages: [],
+          lastActivity: Date.now(),
+        };
+      }
+
+      chatStorage[chatId].messages.push(message);
+      chatStorage[chatId].lastActivity = Date.now();
+
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatStorage));
+    } catch (error) {
+      console.warn("Failed to save chat message:", error);
+    }
+  },
+
+  loadChatHistory(personaName: string, personaId: string): ChatMessage[] {
+    if (typeof window === "undefined") return [];
+
+    try {
+      const chatStorage = this.loadChatStorage();
+      const chatId = `${personaName}-${personaId}`;
+      return chatStorage[chatId]?.messages || [];
+    } catch (error) {
+      console.warn("Failed to load chat history:", error);
+      return [];
+    }
+  },
+
+  loadChatStorage(): ChatStorage {
+    if (typeof window === "undefined") return {};
+
+    try {
+      const stored = localStorage.getItem(CHAT_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.warn("Failed to load chat storage:", error);
+      return {};
+    }
+  },
+
+  getAllChats(): ChatStorage {
+    return this.loadChatStorage();
+  },
+
+  exportAllChatsAsJSON(): string {
+    const chatStorage = this.getAllChats();
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      totalChats: Object.keys(chatStorage).length,
+      chats: chatStorage,
+    };
+    return JSON.stringify(exportData, null, 2);
+  },
+
+  downloadAllChats(): void {
+    if (typeof window === "undefined") return;
+
+    try {
+      const jsonData = this.exportAllChatsAsJSON();
+      const blob = new Blob([jsonData], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `persona-chats-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      console.log("Chat export downloaded");
+    } catch (error) {
+      console.error("Failed to download chats:", error);
+    }
+  },
+
+  clearAllChats(): void {
+    if (typeof window === "undefined") return;
+
+    try {
+      localStorage.removeItem(CHAT_STORAGE_KEY);
+      console.log("All chats cleared");
+    } catch (error) {
+      console.warn("Failed to clear chats:", error);
     }
   },
 };

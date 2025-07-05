@@ -8,7 +8,7 @@ import { generatePersonas } from "@/app/actions/generatePersonas";
 import { generateAllAvatars } from "@/app/actions/generateAllAvatars";
 import { devCache } from "@/lib/devCache";
 
-const PersonaGallery: React.FC = () => {
+const PersonaGrid: React.FC = () => {
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [isGeneratingPersonas, setIsGeneratingPersonas] = useState(false);
   const [isGeneratingAvatars, setIsGeneratingAvatars] = useState(false);
@@ -94,7 +94,7 @@ const PersonaGallery: React.FC = () => {
     if (isGeneratingPersonas) return "Creating unique personas...";
     if (isGeneratingAvatars) return "Generating avatars for each persona...";
     if (personas.length === 0) return "Loading...";
-    return "Explore different personalities and their unique characteristics";
+    return null;
   };
 
   const getCacheExpirationHours = (): number => {
@@ -110,40 +110,41 @@ const PersonaGallery: React.FC = () => {
     }
   };
 
+  const statusMessage = getStatusMessage();
+
   return (
     <>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">Persona Gallery</h1>
-          <p className={`text-zinc-400 ${error ? "text-red-400" : ""}`}>{getStatusMessage()}</p>
+      {statusMessage && (
+        <div className="mb-6">
+          <p className={`text-zinc-400 ${error ? "text-red-400" : ""}`}>{statusMessage}</p>
           {isClientMounted && devCache.isDev() && cacheExists && (
             <p className="text-yellow-400 text-sm mt-1">
               💾 Using cached data (expires in {cacheExpirationHours} hours)
             </p>
           )}
         </div>
+      )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
-          {personas.map((persona, index) => (
-            <PersonaCard key={`${persona.name}-${index}`} persona={persona} />
-          ))}
-        </div>
-
-        {error && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => generateAll(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
+        {personas.map((persona, index) => (
+          <PersonaCard key={`${persona.name}-${index}`} persona={persona} />
+        ))}
       </div>
+
+      {error && (
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => generateAll(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
 
       <DebugButton onRegenerate={handleRegenerate} />
     </>
   );
 };
 
-export default PersonaGallery;
+export default PersonaGrid;

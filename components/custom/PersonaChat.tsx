@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Persona } from "@/types/persona";
 import { chatWithPersona } from "@/app/actions/chatWithPersona";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { devCache } from "@/lib/devCache";
 
 interface PersonaChatProps {
   persona: Persona;
@@ -17,6 +18,7 @@ interface PersonaChatProps {
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
+  timestamp: number;
 };
 
 const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) => {
@@ -24,14 +26,37 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) =
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Generate a unique persona ID based on name and characteristics
+  const personaId = `${persona.name}-${persona.age}-${persona.personality.join("-")}`;
+
+  // Load chat history when component mounts or persona changes
+  useEffect(() => {
+    if (isOpen) {
+      const chatHistory = devCache.loadChatHistory(persona.name, personaId);
+      setMessages(chatHistory);
+    }
+  }, [isOpen, persona.name, personaId]);
+
+  const saveMessage = (message: ChatMessage) => {
+    devCache.saveChatMessage(persona.name, personaId, message);
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
-    const userMessage: ChatMessage = { role: "user", content: inputMessage };
+    const userMessage: ChatMessage = {
+      role: "user",
+      content: inputMessage,
+      timestamp: Date.now(),
+    };
+
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInputMessage("");
     setIsLoading(true);
+
+    // Save user message
+    saveMessage(userMessage);
 
     try {
       const chatHistory = updatedMessages.map(msg => ({
@@ -43,15 +68,22 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) =
       const assistantMessage: ChatMessage = {
         role: "assistant",
         content: response || "I'm sorry, I couldn't respond right now.",
+        timestamp: Date.now(),
       };
+
       setMessages([...updatedMessages, assistantMessage]);
+
+      // Save assistant message
+      saveMessage(assistantMessage);
     } catch (error) {
       console.error("Error sending message:", error);
       const errorMessage: ChatMessage = {
         role: "assistant",
         content: "I'm sorry, something went wrong. Please try again.",
+        timestamp: Date.now(),
       };
       setMessages([...updatedMessages, errorMessage]);
+      saveMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +110,10 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) =
             </Avatar>
             <div className="flex-1">
               <DialogTitle className="text-xl font-bold text-white">{persona.name}</DialogTitle>
-              <DialogDescription className="text-zinc-400">Chat with {persona.name}</DialogDescription>
+              <DialogDescription className="text-zinc-400">
+                Chat with {persona.name}
+                {messages.length > 0 && <span className="ml-2 text-xs">• {messages.length} messages</span>}
+              </DialogDescription>
             </div>
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2">
@@ -110,6 +145,7 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose }) =
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <p className="text-xs opacity-60 mt-1">{new Date(message.timestamp).toLocaleTimeString()}</p>
               </div>
             </div>
           ))}

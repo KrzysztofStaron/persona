@@ -9,9 +9,9 @@ const openai = new OpenAI({
 
 export async function generateAvatar(persona: Persona): Promise<string> {
   try {
-    const prompt = `${JSON.stringify(
-      persona
-    )} \n\n Create a profile picture for this character, like for social media.`;
+    const prompt = `${JSON.stringify(persona)} \n\n Create a profile picture for this character, like for social media. 
+    Make it realistic, not cartoonish. Preferably make it look like photoshoot.
+    `;
 
     const response = await openai.images.generate({
       model: "dall-e-2",
