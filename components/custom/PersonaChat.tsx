@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { devCache } from "@/lib/devCache";
-import { RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, Send } from "lucide-react";
 
 interface PersonaChatProps {
   persona: Persona;
@@ -229,9 +229,20 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
             <Button
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isLoading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+              variant="outline"
+              className="text-white px-6 h-[42px]"
             >
-              Send
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 mr-2" />
+                  Send
+                </>
+              )}
             </Button>
           </div>
         </div>

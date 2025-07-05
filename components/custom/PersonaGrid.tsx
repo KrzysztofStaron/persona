@@ -4,6 +4,15 @@ import React, { useState } from "react";
 import PersonaCard from "./PersonaCard";
 import PersonaCardSkeleton from "./PersonaCardSkeleton";
 import DebugButton from "./DebugButton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { usePersonaContext } from "@/contexts/PersonaContext";
 import { devCache } from "@/lib/devCache";
 
@@ -22,6 +31,8 @@ const PersonaGrid: React.FC = () => {
   } = usePersonaContext();
 
   const [theme, setTheme] = useState("");
+  const [isRegenerateDialogOpen, setIsRegenerateDialogOpen] = useState(false);
+  const [regenerateTheme, setRegenerateTheme] = useState("");
 
   const statusMessage = getStatusMessage();
   const isLoading = isGeneratingPersonas || isGeneratingAvatars;
@@ -36,6 +47,27 @@ const PersonaGrid: React.FC = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleGenerateWithTheme();
+    }
+  };
+
+  const handleDebugRegenerate = (theme?: string) => {
+    generateAll(true, theme);
+  };
+
+  const handleRegenerateSubmit = () => {
+    generateAll(true, regenerateTheme.trim() || undefined);
+    setIsRegenerateDialogOpen(false);
+    setRegenerateTheme("");
+  };
+
+  const handleRegenerateCancel = () => {
+    setIsRegenerateDialogOpen(false);
+    setRegenerateTheme("");
+  };
+
+  const handleRegenerateKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleRegenerateSubmit();
     }
   };
 
@@ -77,6 +109,19 @@ const PersonaGrid: React.FC = () => {
         </div>
       )}
 
+      {/* Regenerate button - shown when personas exist and not loading */}
+      {personas.length > 0 && !isLoading && (
+        <div className="mb-6 flex justify-center">
+          <Button
+            onClick={() => setIsRegenerateDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            variant="outline"
+          >
+            🔄 Regenerate All Personas
+          </Button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-4">
         {personas.length > 0
           ? personas.map((persona, index) => (
@@ -99,7 +144,39 @@ const PersonaGrid: React.FC = () => {
         </div>
       )}
 
-      <DebugButton onRegenerate={handleRegenerate} />
+      <DebugButton onRegenerate={handleDebugRegenerate} />
+
+      {/* Regenerate Dialog */}
+      <Dialog open={isRegenerateDialogOpen} onOpenChange={setIsRegenerateDialogOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Regenerate All Personas</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Enter a new theme to generate fresh personas around. Leave empty to use the default theme.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <input
+              type="text"
+              placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
+              value={regenerateTheme}
+              onChange={e => setRegenerateTheme(e.target.value)}
+              onKeyPress={handleRegenerateKeyPress}
+              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button onClick={handleRegenerateCancel} className="bg-zinc-600 hover:bg-zinc-700 text-white">
+              Cancel
+            </Button>
+            <Button onClick={handleRegenerateSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">
+              Regenerate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
