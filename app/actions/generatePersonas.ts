@@ -12,38 +12,46 @@ const openai = new OpenAI({
   },
 });
 
+// Helper function to generate individual morality instructions
+function generateMoralityInstruction(): string {
+  const rand = Math.random();
+
+  if (rand < 0.25) {
+    return "100% good - pure, virtuous, and morally upright with no flaws or dark sides";
+  } else if (rand < 0.5) {
+    return "75% good - mostly virtuous and morally upright but with minor flaws or imperfections that make them human";
+  } else if (rand < 0.75) {
+    return "balanced mix of positive and negative traits - neither completely good nor bad";
+  } else {
+    return "morally complex - with darker tendencies but not entirely evil, having some redeeming qualities";
+  }
+}
+
 export async function generatePersonas(
   count: number = 4,
   theme: string = "realistic",
   question?: string
 ): Promise<Persona[]> {
   try {
-    // 50:50 chance for good vs neutral personas
-    const isGoodPersona = Math.random() < 0.5;
+    // Generate different morality instructions for each character
+    const moralityInstructions = Array.from({ length: count }, () => generateMoralityInstruction());
 
-    let moralityInstruction = "";
-    if (isGoodPersona) {
-      // 50:50 chance between 100% good and 75% good
-      const is100PercentGood = Math.random() < 0.5;
-      if (is100PercentGood) {
-        moralityInstruction =
-          "Make these characters 100% good - pure, virtuous, and morally upright with no flaws or dark sides.";
-      } else {
-        moralityInstruction =
-          "Make these characters 75% good - mostly virtuous and morally upright but with minor flaws or imperfections that make them human.";
-      }
-    } else {
-      moralityInstruction =
-        "Don't make them 100% bad nor 100% good. Give them a balanced mix of positive and negative traits.";
-    }
+    // Create a formatted string describing the morality for each character
+    const moralityDescription = moralityInstructions
+      .map((instruction, index) => `Character ${index + 1}: ${instruction}`)
+      .join("; ");
 
     let prompt: string;
 
     if (question) {
       // Question-driven persona generation
-      prompt = `Generate ${count} unique character personas who would have DIFFERENT and DIVERSE perspectives on this question: "${question}". ${moralityInstruction}
+      prompt = `Generate ${count} unique character personas who would have DIFFERENT and DIVERSE perspectives on this question: "${question}". 
+
+Apply different morality levels to each character: ${moralityDescription}
 
 Create personas with varied backgrounds, expertise, and viewpoints that would lead to interesting, contrasting answers. Each should be a JSON object with the following structure:
+Create at least 1 character that is a complete opposite of a character that would be useful for the question, but still wants the user to succeed.
+
 
 characters: [
   {
@@ -66,7 +74,11 @@ Examples of diverse perspectives for different questions:
 Make each character unique with diverse backgrounds, ages, and personalities that would naturally have different viewpoints on: "${question}". Ensure the "looks" field is detailed enough for AI image generation. Return as a JSON array.`;
     } else {
       // Theme-driven persona generation (original behavior)
-      prompt = `Generate ${count} unique character personas based on the theme: "${theme}". ${moralityInstruction} Each should be a JSON object with the following structure:
+      prompt = `Generate ${count} unique character personas based on the theme: "${theme}". 
+
+Apply different morality levels to each character: ${moralityDescription}
+
+Each should be a JSON object with the following structure:
  characters: [
     {
   "name": "Character Name", // just name, not middle name or surname
@@ -84,8 +96,8 @@ Make each character unique with diverse backgrounds, ages, and personalities. Fo
     }
 
     const systemContent = question
-      ? `You are a creative character designer. Generate unique, interesting personas with DIVERSE PERSPECTIVES who would have different viewpoints on the question: "${question}". ${moralityInstruction} Create characters with varied backgrounds and expertise that would lead to contrasting, thoughtful answers. Return valid JSON only.`
-      : `You are a creative character designer. Generate unique, interesting personas based on the theme: "${theme}". ${moralityInstruction} Return valid JSON only.`;
+      ? `You are a creative character designer. Generate unique, interesting personas with DIVERSE PERSPECTIVES who would have different viewpoints on the question: "${question}". Apply different morality levels to each character as specified in the prompt. Create characters with varied backgrounds and expertise that would lead to contrasting, thoughtful answers. Return valid JSON only.`
+      : `You are a creative character designer. Generate unique, interesting personas based on the theme: "${theme}". Apply different morality levels to each character as specified in the prompt. Return valid JSON only.`;
 
     const response = await openai.chat.completions.create({
       model: "google/gemini-flash-1.5",
