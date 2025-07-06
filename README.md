@@ -4,7 +4,7 @@
 
 ## Force AI to Be Wildly Creative
 
-PersonaForge is an open-source application that pushes AI beyond generic responses by generating unique characters with distinct personalities, backgrounds, and perspectives. Instead of getting boring, predictable AI responses, you get 20 creative minds ready to tackle your ideas from completely different angles.
+PersonaForge is an open-source application that pushes AI beyond generic responses by generating unique characters with distinct personalities, backgrounds, and perspectives. Instead of getting boring, predictable AI responses, you get creative minds ready to tackle your ideas from completely different angles.
 
 **Created by [@PanzerBread](https://x.com/PanzerBread) on X**
 
@@ -105,10 +105,10 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ## API Costs
 
-- **Persona Generation**: ~$0.0004 for 20 personas (Google Gemini Flash 1.5)
-- **Avatar Generation**: ~$0.064 for 20 avatars (DALL-E 2, 256x256)
+- **Persona Generation**: Very low cost using Google Gemini Flash 1.5 via OpenRouter
+- **Avatar Generation**: ~$0.016 per avatar (DALL-E 2, 256x256)
 - **Chat**: ~$0.00015 per 1K tokens (Google Gemini Flash 1.5)
-- **Total First Load**: ~$0.065 for 20 personas with avatars
+- **Development**: Cached locally for 24 hours to minimize API calls
 
 ## Development vs Production
 
