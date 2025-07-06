@@ -291,8 +291,20 @@ export default function Home() {
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h3 className="text-2xl font-heading font-bold mb-4 text-white">Join the Community</h3>
-            <p className="text-zinc-400 font-medium mb-8">
+            <p className="text-zinc-400 font-medium mb-4">
               Built by developers, AI enthusiasts, and creative minds worldwide
+            </p>
+            <p className="text-zinc-500 text-sm">
+              Created by{" "}
+              <a
+                href="https://x.com/PanzerBread"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange-500 hover:text-orange-400 transition-colors font-medium"
+              >
+                @PanzerBread
+              </a>{" "}
+              on X
             </p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
