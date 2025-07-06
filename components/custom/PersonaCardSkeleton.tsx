@@ -4,9 +4,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const PersonaCardSkeleton = () => {
   return (
-    <Card className="pl-4 transition-all duration-200 h-max border-zinc-700 relative">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
+    <Card className="pl-4 transition-all duration-200 h-full border-zinc-700 relative">
+      <CardContent className="p-4 h-full">
+        <div className="flex items-start gap-3 h-full">
           {/* Avatar Skeleton */}
           <div className="w-18 aspect-[3/4] rounded-md overflow-hidden bg-zinc-800">
             <Skeleton className="w-full h-full" />

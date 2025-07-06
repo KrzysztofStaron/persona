@@ -1,0 +1,47 @@
+# Persona Chat Application
+
+## Project Overview
+
+This is a Next.js application that creates and manages AI-powered personas for interactive conversations. The app generates unique characters with distinct personalities, appearances, and backgrounds that users can chat with individually or collectively.
+
+## Core Features
+
+- **Dynamic Persona Generation**: Create themed personas with unique personalities, biographies, and visual avatars
+- **Individual Chat**: Engage in one-on-one conversations with specific personas with real-time streaming responses
+- **Group Chat**: Ask questions to all personas simultaneously and compare their responses as they stream in parallel
+- **Avatar Generation**: Automatically generate visual representations for each persona
+- **Persona Management**: Download, regenerate, and customize personas
+- **Dark Mode Design**: Modern, production-ready UI optimized for dark themes
+
+## Technical Goals
+
+- **Performance**: Minimize client-side rendering, favor React Server Components
+- **User Experience**: Responsive design with mobile-first approach using Tailwind CSS
+- **Maintainability**: Clean TypeScript code with proper component architecture
+- **Scalability**: Efficient state management and API integration
+
+## Project Purpose
+
+The goal is to create an engaging platform where users can:
+
+1. Generate diverse AI personas around any theme or topic
+2. Explore different perspectives through conversations with multiple personalities
+3. Experience creative storytelling and character interaction
+4. Export and share persona configurations
+
+## Key Technologies
+
+- **Frontend**: Next.js 15, React, TypeScript, Tailwind CSS, shadcn/ui
+- **AI Integration**: Google AI Studio via OpenRouter for chat, OpenAI API for avatar generation
+- **State Management**: React Context API
+- **Styling**: Dark-mode focused design system
+
+## Development Principles
+
+- Components should be reusable and follow naming conventions (PascalCase for components)
+- Favor server-side rendering when possible
+- Implement proper loading states and error handling
+- Maintain consistent UI/UX patterns across all features
+- Optimize for production deployment
+
+This project demonstrates modern web development practices while providing an entertaining and creative AI interaction experience.

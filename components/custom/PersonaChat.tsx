@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Persona } from "@/types/persona";
-import { chatWithPersona } from "@/app/actions/chatWithPersona";
+import { chatWithPersonaStream } from "@/app/actions/chatWithPersonaStream";
 import { generatePersonas } from "@/app/actions/generatePersonas";
 import { generateAvatar } from "@/app/actions/generateAvatar";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -31,7 +31,6 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isRegenerating, setIsRegenerating] = useState(false);
 
   // Generate a unique persona ID based on name and characteristics
   const personaId = `${persona.name}-${persona.age}-${persona.personality.join("-")}`;
@@ -49,7 +48,8 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
   };
 
   const handleRegeneratePersona = async () => {
-    setIsRegenerating(true);
+    // Close the window immediately
+    onClose();
 
     try {
       // Generate a new persona
@@ -66,7 +66,6 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
 
         // Clear chat history for the old persona
         devCache.clearChatHistory(persona.name, personaId);
-        setMessages([]);
 
         // Notify parent component about the updated persona
         if (onPersonaUpdated) {
@@ -75,8 +74,6 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
       }
     } catch (error) {
       console.error("Error regenerating persona:", error);
-    } finally {
-      setIsRegenerating(false);
     }
   };
 
@@ -97,32 +94,60 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
     // Save user message
     saveMessage(userMessage);
 
+    // Create assistant message placeholder
+    const assistantMessage: ChatMessage = {
+      role: "assistant",
+      content: "",
+      timestamp: Date.now(),
+    };
+
+    setMessages([...updatedMessages, assistantMessage]);
+
     try {
       const chatHistory = updatedMessages.map(msg => ({
         role: msg.role as "user" | "assistant",
         content: msg.content,
       }));
 
-      const response = await chatWithPersona(persona, chatHistory);
-      const assistantMessage: ChatMessage = {
-        role: "assistant",
-        content: response || "I'm sorry, I couldn't respond right now.",
-        timestamp: Date.now(),
-      };
+      const stream = await chatWithPersonaStream(persona, chatHistory);
+      const reader = stream.getReader();
+      const decoder = new TextDecoder();
+      let fullContent = "";
 
-      setMessages([...updatedMessages, assistantMessage]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      // Save assistant message
+        const chunk = decoder.decode(value);
+        fullContent += chunk;
+
+        // Update the assistant message with accumulated content
+        setMessages(prevMessages => {
+          const newMessages = [...prevMessages];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage && lastMessage.role === "assistant") {
+            lastMessage.content = fullContent;
+          }
+          return newMessages;
+        });
+      }
+
+      // Save the complete assistant message
+      assistantMessage.content = fullContent;
       saveMessage(assistantMessage);
     } catch (error) {
       console.error("Error sending message:", error);
-      const errorMessage: ChatMessage = {
-        role: "assistant",
-        content: "I'm sorry, something went wrong. Please try again.",
-        timestamp: Date.now(),
-      };
-      setMessages([...updatedMessages, errorMessage]);
-      saveMessage(errorMessage);
+      setMessages(prevMessages => {
+        const newMessages = [...prevMessages];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage && lastMessage.role === "assistant") {
+          lastMessage.content = "I'm sorry, something went wrong. Please try again.";
+        }
+        return newMessages;
+      });
+
+      assistantMessage.content = "I'm sorry, something went wrong. Please try again.";
+      saveMessage(assistantMessage);
     } finally {
       setIsLoading(false);
     }
@@ -137,42 +162,26 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] bg-zinc-900 border-zinc-700 text-white">
-        <DialogHeader className="pb-4">
+      <DialogContent
+        className="max-w-5xl max-h-[95vh] h-[95vh] bg-zinc-900 border-zinc-700 text-white flex flex-col px-4 sm:px-6"
+        showCloseButton={false}
+      >
+        <DialogHeader className="pb-4 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
+            <Avatar className="h-12 w-12 flex-shrink-0">
               {persona.image ? (
                 <AvatarImage src={persona.image} alt={persona.name} />
               ) : (
                 <AvatarFallback className="bg-zinc-700 text-zinc-200">{persona.name.charAt(0)}</AvatarFallback>
               )}
             </Avatar>
-            <div className="flex-1">
-              <DialogTitle className="text-xl font-bold text-white">{persona.name}</DialogTitle>
-              <DialogDescription className="text-zinc-400">
+            <div className="flex-1 min-w-0 text-left">
+              <DialogTitle className="text-xl font-bold text-white truncate text-left">{persona.name}</DialogTitle>
+              <DialogDescription className="text-zinc-400 text-sm text-left">
                 Chat with {persona.name}
                 {messages.length > 0 && <span className="ml-2 text-xs">• {messages.length} messages</span>}
               </DialogDescription>
             </div>
-            <Button
-              onClick={handleRegeneratePersona}
-              variant="outline"
-              size="sm"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
-              disabled={isRegenerating}
-            >
-              {isRegenerating ? (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                  Regenerating...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate
-                </>
-              )}
-            </Button>
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2">
             {persona.personality.map((trait, index) => (
@@ -187,8 +196,32 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
           </div>
         </DialogHeader>
 
+        {/* Floating Button Island */}
+        <div className="absolute top-4 right-4 z-10">
+          <div className="flex items-center gap-2 bg-zinc-800/90 backdrop-blur-sm border border-zinc-700 rounded-lg p-1.5 shadow-lg">
+            <Button
+              onClick={handleRegeneratePersona}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-700"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 rounded-md text-red-400 hover:text-red-300 hover:bg-red-900/30"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
+          </div>
+        </div>
+
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto max-h-[60vh] space-y-4 pr-2">
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2 min-h-0">
           {messages.length === 0 && (
             <div className="text-center text-zinc-400 py-8">
               <p>Start a conversation with {persona.name}!</p>
@@ -242,18 +275,15 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
                   >
                     {message.content}
                   </ReactMarkdown>
+                  {/* Show blinking cursor for assistant messages while loading */}
+                  {message.role === "assistant" && isLoading && index === messages.length - 1 && (
+                    <span className="inline-block w-0.5 h-4 bg-zinc-300 animate-pulse ml-0.5"></span>
+                  )}
                 </div>
                 <p className="text-xs opacity-60 mt-1">{new Date(message.timestamp).toLocaleTimeString()}</p>
               </div>
             </div>
           ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-zinc-800 text-zinc-100 rounded-lg p-3 max-w-[70%]">
-                <p className="text-sm">Typing...</p>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Input Area */}
@@ -272,19 +302,10 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isLoading}
               variant="outline"
-              className="text-white px-6 h-[42px]"
+              size="icon"
+              className="text-white px-6 h-auto flex items-center justify-center"
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send
-                </>
-              )}
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
           </div>
         </div>

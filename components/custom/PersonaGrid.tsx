@@ -111,13 +111,17 @@ const PersonaGrid: React.FC = () => {
 
       {/* Regenerate button - shown when personas exist and not loading */}
       {personas.length > 0 && !isLoading && (
-        <div className="mb-6 flex justify-center">
+        <div className="mb-6 flex flex-col items-center gap-2">
+          {!cacheExists && (
+            <p className="text-zinc-500 text-sm">✨ Showing default personas - click below to generate custom ones</p>
+          )}
           <Button
             onClick={() => setIsRegenerateDialogOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white"
+            size="lg"
             variant="outline"
           >
-            🔄 Regenerate All Personas
+            🔄 Create new characters
           </Button>
         </div>
       )}

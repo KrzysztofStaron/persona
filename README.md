@@ -4,9 +4,9 @@ A Next.js application that allows users to chat with AI-powered personas, each w
 
 ## Features
 
-- **Dynamic Persona Generation**: Personas are generated using OpenAI's GPT models with unique personalities, backgrounds, and characteristics
+- **Dynamic Persona Generation**: Personas are generated using Google AI Studio via OpenRouter with unique personalities, backgrounds, and characteristics
 - **AI-Generated Avatars**: Each persona gets a unique avatar generated using OpenAI's DALL-E 2 API based on their physical description
-- **Interactive Chat**: Chat with each persona using OpenAI's GPT models
+- **Interactive Chat**: Chat with each persona using Google AI Studio via OpenRouter with real-time streaming responses
 - **Development Caching**: In development mode, personas and avatars are cached locally for 24 hours to save API costs
 - **Debug Tools**: Development debug panel with options to regenerate personas/avatars and clear cache
 - **Dark Mode UI**: Beautiful dark-themed interface built with Tailwind CSS
@@ -21,10 +21,12 @@ A Next.js application that allows users to chat with AI-powered personas, each w
    ```
 
 2. **Set up environment variables**:
-   Create a `.env.local` file in the root directory and add your OpenAI API key:
+   Create a `.env.local` file in the root directory and add your API keys:
 
    ```
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
    OPENAI_API_KEY=your_openai_api_key_here
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
 
 3. **Run the development server**:
@@ -41,7 +43,7 @@ A Next.js application that allows users to chat with AI-powered personas, each w
 
 ### Persona Generation
 
-- On first load, 4 unique personas are generated using OpenAI's GPT-4.1-mini
+- On first load, 4 unique personas are generated using Google's Gemini Flash 1.5 via OpenRouter
 - Each persona has unique characteristics: name, age, appearance, personality traits, hobbies, and background
 - In development mode, generated personas are cached locally for 24 hours
 
@@ -63,7 +65,7 @@ A Next.js application that allows users to chat with AI-powered personas, each w
 
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **Styling**: Tailwind CSS, Radix UI components
-- **AI Integration**: OpenAI GPT for persona generation & chat, DALL-E 2 for avatar generation
+- **AI Integration**: Google AI Studio via OpenRouter for persona generation & chat, OpenAI DALL-E 2 for avatar generation
 - **Package Manager**: pnpm
 
 ## Project Structure
@@ -71,10 +73,11 @@ A Next.js application that allows users to chat with AI-powered personas, each w
 ```
 /app
   /actions          # Server actions for OpenAI integration
-    - generatePersonas.ts      # Dynamic persona generation
-    - generateAvatar.ts        # Avatar generation
-    - generateAllAvatars.ts    # Batch avatar generation
-    - chatWithPersona.ts       # Chat functionality
+    - generatePersonas.ts      # Dynamic persona generation (Google AI Studio)
+    - generateAvatar.ts        # Avatar generation (OpenAI DALL-E)
+    - generateAllAvatars.ts    # Batch avatar generation (OpenAI DALL-E)
+    - chatWithPersona.ts       # Chat functionality (Google AI Studio)
+    - chatWithPersonaStream.ts # Streaming chat functionality (Google AI Studio)
 /components
   /custom          # Custom components
     - PersonaGallery.tsx       # Main gallery with caching
@@ -97,9 +100,9 @@ When running on localhost, the application automatically enables:
 
 ## API Costs
 
-- **Persona Generation**: Uses GPT-4.1-mini (~$0.0006 for 4 personas)
+- **Persona Generation**: Uses Google Gemini Flash 1.5 via OpenRouter (~$0.0004 for 4 personas)
 - **Avatar Generation**: Uses DALL-E 2 (256x256) (~$0.064 for 4 avatars)
-- **Chat**: Uses GPT-4.1-mini (~$0.00015 per 1K tokens)
+- **Chat**: Uses Google Gemini Flash 1.5 via OpenRouter (~$0.00015 per 1K tokens)
 - **Total First Load**: ~$0.065 for 4 personas with avatars
 - **Development**: Cached for 24 hours to minimize API calls
 

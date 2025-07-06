@@ -14,15 +14,34 @@ const openai = new OpenAI({
 
 type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
-export async function chatWithPersona(persona: Persona, chatHistory: ChatMessage[]) {
+export async function chatWithPersonaStream(persona: Persona, chatHistory: ChatMessage[]) {
   const systemPrompt = generateSystemPrompt(persona);
 
-  const response = await openai.chat.completions.create({
+  const stream = await openai.chat.completions.create({
     model: "google/gemini-flash-1.5",
     messages: [{ role: "system", content: systemPrompt }, ...chatHistory],
+    stream: true,
   });
 
-  return response.choices[0].message.content;
+  // Convert OpenAI stream to a standard ReadableStream
+  const encoder = new TextEncoder();
+  const readableStream = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || "";
+          if (content) {
+            controller.enqueue(encoder.encode(content));
+          }
+        }
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+  });
+
+  return readableStream;
 }
 
 const generateSystemPrompt = (persona: Persona) => {

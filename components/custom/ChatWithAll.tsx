@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePersonaContext } from "@/contexts/PersonaContext";
-import { chatWithPersona } from "@/app/actions/chatWithPersona";
+import { chatWithPersonaStream } from "@/app/actions/chatWithPersonaStream";
 import { OpenAI } from "openai";
 import { Loader2, Send, Download } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -39,20 +39,53 @@ const ChatWithAll = () => {
           },
         ];
 
-        // Chat with each persona
-        const newResponses: PersonaResponse[] = [];
-
-        for (const persona of personas) {
-          const response = await chatWithPersona(persona, chatHistory);
-          newResponses.push({
-            personaName: persona.name,
-            personaImage: persona.image,
-            response: response || "No response received",
-          });
-        }
-
-        setResponses(newResponses);
+        // Initialize responses for all personas
+        const initialResponses: PersonaResponse[] = personas.map(persona => ({
+          personaName: persona.name,
+          personaImage: persona.image,
+          response: "",
+        }));
+        setResponses(initialResponses);
         setInputValue("");
+
+        // Create promises for all persona streams
+        const streamPromises = personas.map(async (persona, index) => {
+          try {
+            const stream = await chatWithPersonaStream(persona, chatHistory);
+            const reader = stream.getReader();
+            const decoder = new TextDecoder();
+            let fullContent = "";
+
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value);
+              fullContent += chunk;
+
+              // Update this persona's response
+              setResponses(prevResponses => {
+                const newResponses = [...prevResponses];
+                if (newResponses[index]) {
+                  newResponses[index].response = fullContent;
+                }
+                return newResponses;
+              });
+            }
+          } catch (error) {
+            console.error(`Error chatting with ${persona.name}:`, error);
+            setResponses(prevResponses => {
+              const newResponses = [...prevResponses];
+              if (newResponses[index]) {
+                newResponses[index].response = "Error: Could not get response";
+              }
+              return newResponses;
+            });
+          }
+        });
+
+        // Wait for all streams to complete
+        await Promise.all(streamPromises);
       } catch (error) {
         console.error("Error chatting with personas:", error);
       } finally {
@@ -87,7 +120,7 @@ const ChatWithAll = () => {
           <Button
             onClick={handleDownloadPersonas}
             variant="outline"
-            className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+            className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-6 h-[42px]"
             disabled={personas.length === 0}
           >
             <Download className="w-4 h-4 mr-2" />
@@ -185,6 +218,12 @@ const ChatWithAll = () => {
                   >
                     {response.response}
                   </ReactMarkdown>
+                  {/* Show loading state */}
+                  {isLoading && !response.response && <span className="text-zinc-500 text-sm italic">Thinking...</span>}
+                  {/* Show cursor while streaming */}
+                  {isLoading && response.response && (
+                    <span className="inline-block w-0.5 h-4 bg-zinc-300 animate-pulse ml-0.5"></span>
+                  )}
                 </div>
               </div>
             </div>

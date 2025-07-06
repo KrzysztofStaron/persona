@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Persona } from "@/types/persona";
-import { generatePersonas } from "@/app/actions/generatePersonas";
+import { generatePersonas, getFallbackPersonas } from "@/app/actions/generatePersonas";
 import { generateAllAvatars } from "@/app/actions/generateAllAvatars";
 import { devCache } from "@/lib/devCache";
 
@@ -50,6 +50,15 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
       return true;
     }
     return false;
+  };
+
+  const loadFallbackPersonas = async () => {
+    try {
+      const fallbackPersonas = await getFallbackPersonas(4);
+      setPersonas(fallbackPersonas);
+    } catch (error) {
+      console.error("Error loading fallback personas:", error);
+    }
   };
 
   const updateCacheStatus = () => {
@@ -137,9 +146,12 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
   useEffect(() => {
     if (isClientMounted) {
       updateCacheStatus();
-      // Only load from cache if it exists, don't auto-generate
+      // Load from cache if it exists, otherwise load fallback personas
       if (devCache.exists()) {
         loadFromCache();
+      } else {
+        // Load fallback personas as defaults when no cache exists
+        loadFallbackPersonas();
       }
     }
   }, [isClientMounted]);

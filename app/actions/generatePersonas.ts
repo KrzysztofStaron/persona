@@ -4,15 +4,39 @@ import { Persona } from "@/types/persona";
 import { OpenAI } from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    "X-Title": "Persona Chat App",
+  },
 });
 
 export async function generatePersonas(count: number = 4, theme: string = "realistic"): Promise<Persona[]> {
   try {
-    const prompt = `Generate ${count} unique character personas based on the theme: "${theme}". Don't make them 100% bad nor 100% good. Each should be a JSON object with the following structure:
+    // 50:50 chance for good vs neutral personas
+    const isGoodPersona = Math.random() < 0.5;
+
+    let moralityInstruction = "";
+    if (isGoodPersona) {
+      // 50:50 chance between 100% good and 75% good
+      const is100PercentGood = Math.random() < 0.5;
+      if (is100PercentGood) {
+        moralityInstruction =
+          "Make these characters 100% good - pure, virtuous, and morally upright with no flaws or dark sides.";
+      } else {
+        moralityInstruction =
+          "Make these characters 75% good - mostly virtuous and morally upright but with minor flaws or imperfections that make them human.";
+      }
+    } else {
+      moralityInstruction =
+        "Don't make them 100% bad nor 100% good. Give them a balanced mix of positive and negative traits.";
+    }
+
+    const prompt = `Generate ${count} unique character personas based on the theme: "${theme}". ${moralityInstruction} Each should be a JSON object with the following structure:
  characters: [
     {
-  "name": "Character Name",
+  "name": "Character Name", // just name, not middle name or surname
   "age": number,
   "looks": "detailed physical description for profile picture generation",
   "biography": "character background story", // 1-2 sentences max, could be morally unethical,
@@ -26,24 +50,24 @@ export async function generatePersonas(count: number = 4, theme: string = "reali
 Make each character unique with diverse backgrounds, ages, and personalities. Focus on the "${theme}" theme. Ensure the "looks" field is detailed enough for AI image generation. Return as a JSON array.`;
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
+      model: "google/gemini-flash-1.5",
       messages: [
         {
           role: "system",
-          content: `You are a creative character designer. Generate unique, interesting personas based on the theme: "${theme}". Return valid JSON only.`,
+          content: `You are a creative character designer. Generate unique, interesting personas based on the theme: "${theme}". ${moralityInstruction} Return valid JSON only.`,
         },
         {
           role: "user",
           content: prompt,
         },
       ],
-      temperature: 0.8,
+      temperature: 0.9,
       response_format: { type: "json_object" },
     });
 
     const content = response.choices[0].message.content;
     if (!content) {
-      throw new Error("No content received from OpenAI");
+      throw new Error("No content received from Google AI Studio");
     }
 
     console.log(content);
@@ -63,14 +87,15 @@ Make each character unique with diverse backgrounds, ages, and personalities. Fo
   } catch (error) {
     console.error("Error generating personas:", error);
     // Return fallback personas if generation fails
-    return getFallbackPersonas();
+    return await getFallbackPersonas(count);
   }
 }
 
-function getFallbackPersonas(): Persona[] {
-  return [
+export async function getFallbackPersonas(count: number = 4): Promise<Persona[]> {
+  // Pool of 10 diverse personas
+  const personaPool: Persona[] = [
     {
-      name: "Zara Nightwhisper",
+      name: "Zara",
       age: 150,
       image: "",
       looks:
@@ -82,7 +107,7 @@ function getFallbackPersonas(): Persona[] {
       personality: ["wise", "mysterious", "compassionate", "otherworldly"],
     },
     {
-      name: "Kai Stormforge",
+      name: "Kai",
       age: 32,
       image: "",
       looks:
@@ -95,7 +120,7 @@ function getFallbackPersonas(): Persona[] {
       personality: ["innovative", "determined", "adventurous", "perfectionist"],
     },
     {
-      name: "Luna Thornfield",
+      name: "Luna",
       age: 28,
       image: "",
       looks:
@@ -108,7 +133,7 @@ function getFallbackPersonas(): Persona[] {
       personality: ["empathetic", "patient", "intuitive", "protective"],
     },
     {
-      name: "Phoenix Ashcroft",
+      name: "Phoenix",
       age: 45,
       image: "",
       looks:
@@ -120,5 +145,85 @@ function getFallbackPersonas(): Persona[] {
       responseTone: ["warm", "comforting"],
       personality: ["nurturing", "creative", "optimistic", "generous"],
     },
+    {
+      name: "Raven",
+      age: 24,
+      image: "",
+      looks:
+        "Sleek hacker with jet-black hair and neon-blue cybernetic implants, always wearing a leather jacket covered in glowing circuits",
+      biography:
+        "Elite cyber-warrior who fights corporate tyranny from the digital shadows, liberating data and exposing corruption.",
+      lifeGoals: "To bring down the mega-corporations and return power to the people",
+      hobbies: ["code breaking", "virtual reality diving", "drone racing", "digital art"],
+      responseTone: ["rebellious", "sharp"],
+      personality: ["defiant", "clever", "cynical", "loyal"],
+    },
+    {
+      name: "Atlas",
+      age: 67,
+      image: "",
+      looks:
+        "Weathered explorer with salt-and-pepper beard and eyes that hold the wisdom of a thousand journeys, wearing a worn leather coat",
+      biography:
+        "Legendary cartographer who has mapped every corner of the known world and seeks to discover what lies beyond.",
+      lifeGoals: "To find the mythical lost continent and unlock its ancient secrets",
+      hobbies: ["star navigation", "ancient language study", "survival crafting", "storytelling"],
+      responseTone: ["adventurous", "philosophical"],
+      personality: ["wise", "brave", "curious", "humble"],
+    },
+    {
+      name: "Iris",
+      age: 19,
+      image: "",
+      looks:
+        "Vibrant artist with rainbow-streaked hair and paint-stained fingers, wearing flowing clothes that seem to shift colors",
+      biography:
+        "Prodigious painter whose artworks come to life, creating beauty that transcends the boundary between imagination and reality.",
+      lifeGoals: "To paint a masterpiece that will inspire peace and unity across all realms",
+      hobbies: ["living art creation", "color theory", "dance painting", "emotion channeling"],
+      responseTone: ["whimsical", "passionate"],
+      personality: ["creative", "spontaneous", "empathetic", "dreamy"],
+    },
+    {
+      name: "Titan",
+      age: 42,
+      image: "",
+      looks:
+        "Imposing gladiator with bronze skin and ritual scars, wearing ceremonial armor that gleams with ancient power",
+      biography:
+        "Former arena champion turned protector of the innocent, wielding strength not for glory but for justice.",
+      lifeGoals: "To establish sanctuaries where the weak can find refuge from the strong",
+      hobbies: ["weapon mastery", "meditation", "mentoring youth", "ancient combat rituals"],
+      responseTone: ["honorable", "direct"],
+      personality: ["protective", "disciplined", "just", "stoic"],
+    },
+    {
+      name: "Sage",
+      age: 35,
+      image: "",
+      looks:
+        "Serene scholar with flowing robes and eyes that seem to hold infinite knowledge, surrounded by floating books and scrolls",
+      biography: "Keeper of the Great Library who can access any knowledge that has ever been written or thought.",
+      lifeGoals: "To preserve all knowledge for future generations and teach wisdom to those who seek it",
+      hobbies: ["ancient text restoration", "philosophical debates", "memory magic", "teaching"],
+      responseTone: ["scholarly", "thoughtful"],
+      personality: ["intelligent", "patient", "wise", "generous"],
+    },
+    {
+      name: "Echo",
+      age: 26,
+      image: "",
+      looks:
+        "Ethereal musician with translucent skin and hair that moves like water, holding instruments that seem to be made of pure sound",
+      biography: "Wandering bard whose melodies can heal trauma, inspire courage, or bring peace to troubled souls.",
+      lifeGoals: "To compose the perfect song that will end all suffering and bring harmony to the world",
+      hobbies: ["sound weaving", "emotion harmonics", "instrument crafting", "story singing"],
+      responseTone: ["melodic", "soothing"],
+      personality: ["artistic", "empathetic", "gentle", "intuitive"],
+    },
   ];
+
+  // Shuffle the pool and return random selection
+  const shuffled = [...personaPool].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(count, personaPool.length));
 }
