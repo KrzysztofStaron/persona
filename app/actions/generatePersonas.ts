@@ -97,7 +97,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Zara",
       age: 150,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-aOtojUS5mtuCl6aEmSrao0l8.png?st=2025-07-06T19%3A19%3A08Z&se=2025-07-06T21%3A19%3A08Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T13%3A38%3A36Z&ske=2025-07-07T13%3A38%3A36Z&sks=b&skv=2024-08-04&sig=DCZ4BP4bmibKw75dhpBPuLMkpkOd5L2KrUyLr8hXJjc%3D",
       looks:
         "Mysterious figure with silver hair that shimmers like starlight and deep purple eyes, adorned in flowing dark robes",
       biography: "Guardian of the Ethereal Realm, protector of dreams and keeper of forgotten memories.",
@@ -109,7 +110,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Kai",
       age: 32,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-JRftOW0rHZO9H9XjQgpKFvJS.png?st=2025-07-06T19%3A19%3A20Z&se=2025-07-06T21%3A19%3A20Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T09%3A04%3A26Z&ske=2025-07-07T09%3A04%3A26Z&sks=b&skv=2024-08-04&sig=patf5kPlJ02ifQWUxdve%2BarE00R3ZQS/zTK7jrfppFc%3D",
       looks:
         "Rugged inventor with copper-colored hair and goggles permanently perched on their forehead, hands stained with oil and magic",
       biography:
@@ -122,7 +124,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Luna",
       age: 28,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-IrIZikeHcPayu39XkDnoWh82.png?st=2025-07-06T19%3A18%3A13Z&se=2025-07-06T21%3A18%3A13Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T14%3A27%3A31Z&ske=2025-07-07T14%3A27%3A31Z&sks=b&skv=2024-08-04&sig=DKwxTZgM3Z2wli4QUbKrTRIJn9tiXfe9qQGPChz7%2BeA%3D",
       looks:
         "Elegant botanist with emerald eyes and hair adorned with living vines, always surrounded by a subtle floral aroma",
       biography:
@@ -135,7 +138,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Phoenix",
       age: 45,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-iwakn18JwURDiY5egv8chmx1.png?st=2025-07-06T19%3A21%3A03Z&se=2025-07-06T21%3A21%3A03Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T08%3A41%3A24Z&ske=2025-07-07T08%3A41%3A24Z&sks=b&skv=2024-08-04&sig=QSNOMvKRmlljvpg8xi8zA%2B/gXmjKSplWAdVypHBt7oQ%3D",
       looks:
         "Charismatic chef with flame-red hair and eyes that sparkle with warmth, wearing an apron that never seems to get dirty",
       biography:
@@ -148,7 +152,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Raven",
       age: 24,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-x1MYDGwix5eba6T2XazUsIoh.png?st=2025-07-06T19%3A17%3A16Z&se=2025-07-06T21%3A17%3A16Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T20%3A17%3A16Z&ske=2025-07-07T20%3A17%3A16Z&sks=b&skv=2024-08-04&sig=AhvaL92rFjtucPGz3KBh7GlArqExWvrz6U2X31xmPic%3D",
       looks:
         "Sleek hacker with jet-black hair and neon-blue cybernetic implants, always wearing a leather jacket covered in glowing circuits",
       biography:
@@ -161,7 +166,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Atlas",
       age: 67,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-p6Q18yiJW0xUxkRq1gJHW3ce.png?st=2025-07-06T19%3A20%3A20Z&se=2025-07-06T21%3A20%3A20Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T16%3A21%3A59Z&ske=2025-07-07T16%3A21%3A59Z&sks=b&skv=2024-08-04&sig=zpWQW7coZDYbzdCa8M8Nj0Er9lOViEymE%2Bnmq0BmcaE%3D",
       looks:
         "Weathered explorer with salt-and-pepper beard and eyes that hold the wisdom of a thousand journeys, wearing a worn leather coat",
       biography:
@@ -174,7 +180,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Iris",
       age: 19,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-4cgGUz7NCHLLRLPKWJCnLbTT.png?st=2025-07-06T19%3A20%3A33Z&se=2025-07-06T21%3A20%3A33Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T01%3A12%3A44Z&ske=2025-07-07T01%3A12%3A44Z&sks=b&skv=2024-08-04&sig=S9%2BYepOxc3ULifY3YNx2bQUBHtTxM0B8Wg08zz/xkcc%3D",
       looks:
         "Vibrant artist with rainbow-streaked hair and paint-stained fingers, wearing flowing clothes that seem to shift colors",
       biography:
@@ -187,7 +194,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Titan",
       age: 42,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-Ou26kKLHBmeQfRjYwutlTbKr.png?st=2025-07-06T19%3A18%3A57Z&se=2025-07-06T21%3A18%3A57Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T14%3A17%3A31Z&ske=2025-07-07T14%3A17%3A31Z&sks=b&skv=2024-08-04&sig=Fat4K6IlcZPX/49dS/ELIJ/iilu8Zly9zuEQgn4zmm4%3D",
       looks:
         "Imposing gladiator with bronze skin and ritual scars, wearing ceremonial armor that gleams with ancient power",
       biography:
@@ -200,7 +208,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Sage",
       age: 35,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-hXelKotoRorH4o7hxoeToYDi.png?st=2025-07-06T19%3A17%3A47Z&se=2025-07-06T21%3A17%3A47Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T12%3A53%3A58Z&ske=2025-07-07T12%3A53%3A58Z&sks=b&skv=2024-08-04&sig=Q4dwMPvj/wBQJSGKJXTwihI6I3MXZGAAGXl5Sn1KLQs%3D",
       looks:
         "Serene scholar with flowing robes and eyes that seem to hold infinite knowledge, surrounded by floating books and scrolls",
       biography: "Keeper of the Great Library who can access any knowledge that has ever been written or thought.",
@@ -212,7 +221,8 @@ export async function getFallbackPersonas(count: number = 4): Promise<Persona[]>
     {
       name: "Echo",
       age: 26,
-      image: "",
+      image:
+        "https://oaidalleapiprodscus.blob.core.windows.net/private/org-poQrWMGQYM91bi0grOJL9nZd/user-TZsrYoImRJzfhjMH42E56sSl/img-GdR42Wy5KNtRNvPiDdf9AOBQ.png?st=2025-07-06T19%3A18%3A31Z&se=2025-07-06T21%3A18%3A31Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=ed3ea2f9-5e38-44be-9a1b-7c1e65e4d54f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-07-06T01%3A09%3A29Z&ske=2025-07-07T01%3A09%3A29Z&sks=b&skv=2024-08-04&sig=FFkjvrUtgncH4umFO%2BFIZoj97GT5eZVTQYbnNfu9KVY%3D",
       looks:
         "Ethereal musician with translucent skin and hair that moves like water, holding instruments that seem to be made of pure sound",
       biography: "Wandering bard whose melodies can heal trauma, inspire courage, or bring peace to troubled souls.",

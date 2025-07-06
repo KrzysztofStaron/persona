@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Persona } from "@/types/persona";
 import { generatePersonas, getFallbackPersonas } from "@/app/actions/generatePersonas";
-import { generateAllAvatars } from "@/app/actions/generateAllAvatars";
+import { generateAvatar } from "@/app/actions/generateAvatar";
 import { devCache } from "@/lib/devCache";
 
 interface PersonaContextType {
@@ -87,30 +87,68 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
       // Generate personas
       setIsGeneratingPersonas(true);
       const newPersonas = await generatePersonas(4, theme || "realistic");
+
+      // Display personas immediately (without avatars)
       setPersonas(newPersonas);
       setIsGeneratingPersonas(false);
 
-      // Generate avatars
+      // Generate avatars in the background
       setIsGeneratingAvatars(true);
-      const avatarMap = await generateAllAvatars(newPersonas);
 
-      // Update personas with avatars
-      const personasWithAvatars = newPersonas.map(persona => ({
-        ...persona,
-        image: avatarMap[persona.name] || "",
-      }));
-
-      setPersonas(personasWithAvatars);
-      setIsGeneratingAvatars(false);
-
-      // Cache the results in development
-      devCache.save(personasWithAvatars, avatarMap);
-      updateCacheStatus();
+      // Generate avatars one by one and update personas individually
+      generateAvatarsInBackground(newPersonas);
     } catch (error) {
-      console.error("Error generating personas/avatars:", error);
-      setError("Failed to generate personas and avatars. Please try again.");
+      console.error("Error generating personas:", error);
+      setError("Failed to generate personas. Please try again.");
       setIsGeneratingPersonas(false);
       setIsGeneratingAvatars(false);
+    }
+  };
+
+  const generateAvatarsInBackground = async (personasToUpdate: Persona[]) => {
+    try {
+      // Generate avatars one by one and update personas individually
+      for (let i = 0; i < personasToUpdate.length; i++) {
+        const persona = personasToUpdate[i];
+
+        try {
+          const avatarUrl = await generateAvatar(persona);
+
+          // Update this specific persona with its avatar
+          setPersonas(prevPersonas => {
+            const newPersonas = [...prevPersonas];
+            const personaIndex = newPersonas.findIndex(p => p.name === persona.name);
+            if (personaIndex !== -1) {
+              newPersonas[personaIndex] = {
+                ...newPersonas[personaIndex],
+                image: avatarUrl || "",
+              };
+            }
+            return newPersonas;
+          });
+        } catch (error) {
+          console.error(`Failed to generate avatar for ${persona.name}:`, error);
+          // Continue with other personas even if one fails
+        }
+      }
+
+      setIsGeneratingAvatars(false);
+
+      // Cache the final result
+      setPersonas(prevPersonas => {
+        const avatarMap: { [key: string]: string } = {};
+        prevPersonas.forEach(persona => {
+          avatarMap[persona.name] = persona.image;
+        });
+        devCache.save(prevPersonas, avatarMap);
+        return prevPersonas;
+      });
+
+      updateCacheStatus();
+    } catch (error) {
+      console.error("Error generating avatars:", error);
+      setIsGeneratingAvatars(false);
+      // Don't show error for avatar failures, personas are already visible
     }
   };
 

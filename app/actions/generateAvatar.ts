@@ -38,27 +38,68 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries: number = 3, baseDe
 
 export async function generateAvatar(persona: Persona): Promise<string> {
   try {
-    const prompt = `${persona.looks} \n\n Create a profile picture for this character, like for social media. 
-    Make it realistic, not cartoonish. Preferably make it look like photoshoot.
-    `;
+    // Sanitize and simplify the persona description
+    const sanitizedLooks = persona.looks
+      .replace(/magic|magical|mystical|otherworldly|ethereal/gi, "enchanting")
+      .replace(/cybernetic|implants|circuits/gi, "tech accessories")
+      .replace(/ritual scars|scars/gi, "markings")
+      .replace(/gladiator|warrior|fighter/gi, "athletic person")
+      .replace(/weapon|sword|blade/gi, "tool")
+      .replace(/hacker|cyber/gi, "tech enthusiast")
+      .replace(/translucent|floating/gi, "graceful");
 
-    ///console.log("NODE_ENV:", process.env.NODE_ENV);
+    let prompt = `Professional portrait photo of ${sanitizedLooks}. High quality studio lighting, photorealistic, detailed facial features, clean background, professional headshot style.`;
 
-    const response = await withRetry(async () => {
-      return await openai.images.generate({
-        model: process.env.NODE_ENV === "production" ? "dall-e-3" : "dall-e-2",
-        prompt: prompt,
-        n: 1,
-        size: "1024x1024",
+    console.log("Generated prompt:", prompt);
+
+    try {
+      // Try the detailed prompt first
+      const response = await withRetry(async () => {
+        return await openai.images.generate({
+          model: process.env.NODE_ENV === "production" ? "dall-e-3" : "dall-e-2",
+          prompt: prompt,
+          n: 1,
+          size: "1024x1024",
+          quality: process.env.NODE_ENV === "production" ? "standard" : undefined,
+          style: process.env.NODE_ENV === "production" ? "natural" : undefined,
+        });
       });
-    });
 
-    const imageUrl = response.data?.[0]?.url;
-    if (!imageUrl) {
-      throw new Error("No image URL received from OpenAI");
+      const imageUrl = response.data?.[0]?.url;
+      if (!imageUrl) {
+        throw new Error("No image URL received from OpenAI");
+      }
+
+      return imageUrl;
+    } catch (detailedError: any) {
+      // If detailed prompt fails, try a simpler version
+      if (detailedError.status === 400) {
+        console.log("Detailed prompt failed, trying simplified version...");
+
+        const simplifiedPrompt = `Professional headshot photo of a person. High quality studio lighting, photorealistic, clean background.`;
+
+        const fallbackResponse = await withRetry(async () => {
+          return await openai.images.generate({
+            model: process.env.NODE_ENV === "production" ? "dall-e-3" : "dall-e-2",
+            prompt: simplifiedPrompt,
+            n: 1,
+            size: "1024x1024",
+            quality: process.env.NODE_ENV === "production" ? "standard" : undefined,
+            style: process.env.NODE_ENV === "production" ? "natural" : undefined,
+          });
+        });
+
+        const fallbackImageUrl = fallbackResponse.data?.[0]?.url;
+        if (!fallbackImageUrl) {
+          throw new Error("No image URL received from OpenAI");
+        }
+
+        return fallbackImageUrl;
+      }
+
+      // If it's not a 400 error, re-throw the original error
+      throw detailedError;
     }
-
-    return imageUrl;
   } catch (error: any) {
     console.error("Error generating avatar:", error);
 
@@ -80,14 +121,21 @@ export async function generateAvatar(persona: Persona): Promise<string> {
 }
 
 export async function generateAvatarForPersona(persona: Persona): Promise<string> {
-  //return "https://placehold.co/256x256";
-
   try {
     const avatarUrl = await generateAvatar(persona);
     return avatarUrl;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Failed to generate avatar for ${persona.name}:`, error);
-    // Return a fallback or throw the error
+
+    // Log the full error details for debugging
+    if (error.status) {
+      console.error(`Status: ${error.status}, Type: ${error.type || "unknown"}`);
+    }
+
+    // For development, we could return a placeholder instead of failing completely
+    // Uncomment the line below if you want fallback placeholders:
+    // return `https://ui-avatars.com/api/?name=${encodeURIComponent(persona.name)}&background=random&size=256`;
+
     throw error;
   }
 }

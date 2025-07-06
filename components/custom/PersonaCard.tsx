@@ -19,46 +19,13 @@ interface PersonaCardProps {
 const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isRegeneratingAvatar, setIsRegeneratingAvatar] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const { updatePersona, isGeneratingPersonas, isGeneratingAvatars } = usePersonaContext();
 
-  const handleImageError = async () => {
-    if (isRegeneratingAvatar) return; // Prevent infinite loops
-
-    console.log("Image failed to load for", persona.name);
-    setImageError(true);
-    setIsImageLoading(false); // Stop loading state immediately
-
-    // Don't auto-regenerate if it's just an expired URL
-    // User can manually regenerate by clicking the card if needed
-    console.log("Image URL may be expired. Showing fallback avatar.");
-  };
-
-  const handleImageLoad = () => {
-    setImageError(false);
-    setIsImageLoading(false);
-    console.log("Image loaded successfully for", persona.name);
-  };
-
   useEffect(() => {
-    if (persona.image === "") {
-      handleImageError();
-    } else {
-      // Reset loading state when persona has an image
-      setIsImageLoading(true);
-      setImageError(false);
-    }
-  }, [persona, handleImageError]);
-
-  useEffect(() => {
-    // Reset image loading state when persona image changes
     if (persona.image) {
       setIsImageLoading(true);
-      setImageError(false);
     } else {
-      // If no image, don't show loading state
       setIsImageLoading(false);
     }
   }, [persona.image]);
@@ -81,10 +48,7 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
   };
 
   const handleRegenerateAvatar = async () => {
-    if (isRegeneratingAvatar) return;
-
     console.log("Manually regenerating avatar for", persona.name);
-    setIsRegeneratingAvatar(true);
 
     try {
       const newAvatarUrl = await generateAvatar(persona);
@@ -95,37 +59,12 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
           image: newAvatarUrl,
         };
         updatePersona(personaIndex, updatedPersona);
-        setImageError(false);
-        setIsImageLoading(true); // Reset loading state for new image
       }
     } catch (error: any) {
       console.error("Error regenerating avatar:", error);
 
-      // Show more specific error messages
-      let errorMessage = "Error: Could not generate avatar";
-
-      if (error.message) {
-        if (error.message.includes("Rate limit exceeded")) {
-          errorMessage = "Rate limit exceeded. Please try again in a few minutes.";
-        } else if (error.message.includes("Authentication failed")) {
-          errorMessage = "Authentication error. Please check API configuration.";
-        } else if (error.message.includes("temporarily unavailable")) {
-          errorMessage = "Service temporarily unavailable. Please try again later.";
-        } else {
-          errorMessage = `Error: ${error.message}`;
-        }
-      }
-
-      // For rate limit errors, don't set image error (keep showing fallback initials)
-      // For other errors, show the error message
-      if (!error.message?.includes("Rate limit exceeded")) {
-        setImageError(true);
-      }
-
       // Could show a toast notification here for better UX
-      console.log("Avatar generation failed:", errorMessage);
-    } finally {
-      setIsRegeneratingAvatar(false);
+      console.log("Avatar generation failed:", error.message);
     }
   };
 
@@ -176,33 +115,28 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
         <CardContent className="p-4 h-full">
           <div className="flex items-start gap-3 h-full">
             {/* Avatar */}
-            <div className="w-18 aspect-[3/4] rounded-md overflow-hidden flex items-center justify-center bg-zinc-800 relative">
-              {isRegeneratingAvatar || isImageLoading ? (
-                <Skeleton className="w-full h-full" />
-              ) : persona.image && !imageError ? (
+            <div className="w-18 aspect-[3/4] rounded-md overflow-hidden flex items-center justify-center bg-zinc-800">
+              {isImageLoading ? (
+                <>
+                  <Skeleton className="w-full h-full" />
+
+                  <img
+                    src={persona.image}
+                    alt={persona.name}
+                    className="w-full h-full object-cover hidden"
+                    onLoad={() => setIsImageLoading(false)}
+                  />
+                </>
+              ) : persona.image ? (
                 <img
-                  key={persona.image}
                   src={persona.image}
                   alt={persona.name}
                   className="w-full h-full object-cover"
-                  onError={handleImageError}
-                  onLoad={handleImageLoad}
+                  onLoad={() => setIsImageLoading(false)}
                 />
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-zinc-400 group">
-                  <p className="text-2xl font-bold mb-1">{persona.name.charAt(0)}</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleRegenerateAvatar();
-                    }}
-                    className="text-xs text-zinc-500 hover:text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
-                    disabled={isRegeneratingAvatar}
-                  >
-                    {imageError ? "Generate" : "Add Image"}
-                  </Button>
+                <div className="flex items-center justify-center h-full text-zinc-400">
+                  <p className="text-2xl font-bold">{persona.name.charAt(0)}</p>
                 </div>
               )}
             </div>
