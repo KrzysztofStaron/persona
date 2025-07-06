@@ -48,8 +48,9 @@ const ChatWithAll = () => {
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [generateTheme, setGenerateTheme] = useState("");
   const [generateCount, setGenerateCount] = useState(4);
+  const [hasUserDismissedDialog, setHasUserDismissedDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { personas, generateAll } = usePersonaContext();
+  const { personas, generateAll, isClientMounted, isGeneratingPersonas } = usePersonaContext();
 
   // Cleanup image URLs on component unmount
   useEffect(() => {
@@ -60,6 +61,30 @@ const ChatWithAll = () => {
       }
     };
   }, []);
+
+  // Auto-open generation dialog when no personas are available
+  useEffect(() => {
+    if (
+      isClientMounted &&
+      personas.length === 0 &&
+      !isGeneratingPersonas &&
+      !isGenerateDialogOpen &&
+      !hasUserDismissedDialog
+    ) {
+      // Small delay to ensure everything is loaded
+      const timer = setTimeout(() => {
+        setIsGenerateDialogOpen(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isClientMounted, personas.length, isGeneratingPersonas, isGenerateDialogOpen, hasUserDismissedDialog]);
+
+  // Reset dismissed flag when personas are generated
+  useEffect(() => {
+    if (personas.length > 0) {
+      setHasUserDismissedDialog(false);
+    }
+  }, [personas.length]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -228,6 +253,7 @@ const ChatWithAll = () => {
     setIsGenerateDialogOpen(false);
     setGenerateTheme("");
     setGenerateCount(4);
+    setHasUserDismissedDialog(true);
   };
 
   const handleGenerateKeyPress = (e: React.KeyboardEvent) => {
@@ -246,6 +272,7 @@ const ChatWithAll = () => {
   const handleChatSectionClick = () => {
     if (personas.length === 0) {
       setIsGenerateDialogOpen(true);
+      setHasUserDismissedDialog(false);
     }
   };
 
@@ -477,7 +504,15 @@ const ChatWithAll = () => {
       )}
 
       {/* Generate Personas Dialog */}
-      <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+      <Dialog
+        open={isGenerateDialogOpen}
+        onOpenChange={open => {
+          setIsGenerateDialogOpen(open);
+          if (!open) {
+            setHasUserDismissedDialog(true);
+          }
+        }}
+      >
         <DialogContent className="bg-zinc-900 border-zinc-700">
           <DialogHeader>
             <DialogTitle className="text-white">Generate Personas</DialogTitle>
