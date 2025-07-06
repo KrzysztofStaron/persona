@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -118,21 +117,17 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
                 <>
                   <Skeleton className="w-full h-full" />
 
-                  <Image
+                  <img
                     src={persona.image}
                     alt={persona.name}
-                    width={72}
-                    height={96}
                     className="w-full h-full object-cover hidden"
                     onLoad={() => setIsImageLoading(false)}
                   />
                 </>
               ) : persona.image ? (
-                <Image
+                <img
                   src={persona.image}
                   alt={persona.name}
-                  width={72}
-                  height={96}
                   className="w-full h-full object-cover"
                   onLoad={() => setIsImageLoading(false)}
                 />
