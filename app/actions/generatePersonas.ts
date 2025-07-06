@@ -12,7 +12,11 @@ const openai = new OpenAI({
   },
 });
 
-export async function generatePersonas(count: number = 4, theme: string = "realistic"): Promise<Persona[]> {
+export async function generatePersonas(
+  count: number = 4,
+  theme: string = "realistic",
+  question?: string
+): Promise<Persona[]> {
   try {
     // 50:50 chance for good vs neutral personas
     const isGoodPersona = Math.random() < 0.5;
@@ -33,7 +37,36 @@ export async function generatePersonas(count: number = 4, theme: string = "reali
         "Don't make them 100% bad nor 100% good. Give them a balanced mix of positive and negative traits.";
     }
 
-    const prompt = `Generate ${count} unique character personas based on the theme: "${theme}". ${moralityInstruction} Each should be a JSON object with the following structure:
+    let prompt: string;
+
+    if (question) {
+      // Question-driven persona generation
+      prompt = `Generate ${count} unique character personas who would have DIFFERENT and DIVERSE perspectives on this question: "${question}". ${moralityInstruction}
+
+Create personas with varied backgrounds, expertise, and viewpoints that would lead to interesting, contrasting answers. Each should be a JSON object with the following structure:
+
+characters: [
+  {
+    "name": "Character Name", // just name, not middle name or surname
+    "age": number,
+    "looks": "detailed physical description for profile picture generation",
+    "biography": "character background story relevant to their perspective on the question", // 1-2 sentences max
+    "lifeGoals": "character's main objectives related to their expertise/background",
+    "hobbies": ["hobby1", "hobby2", ...], // could be 1-4
+    "responseTone": ["tone1", "tone2"], // could be 1-4
+    "personality": ["trait1", "trait2", ...], // could be 1-4
+  }
+]
+
+Examples of diverse perspectives for different questions:
+- Business question: entrepreneur, employee, consultant, economist
+- Health question: doctor, patient, fitness trainer, researcher
+- Technology question: developer, user, ethicist, futurist
+
+Make each character unique with diverse backgrounds, ages, and personalities that would naturally have different viewpoints on: "${question}". Ensure the "looks" field is detailed enough for AI image generation. Return as a JSON array.`;
+    } else {
+      // Theme-driven persona generation (original behavior)
+      prompt = `Generate ${count} unique character personas based on the theme: "${theme}". ${moralityInstruction} Each should be a JSON object with the following structure:
  characters: [
     {
   "name": "Character Name", // just name, not middle name or surname
@@ -48,13 +81,18 @@ export async function generatePersonas(count: number = 4, theme: string = "reali
   ]
 
 Make each character unique with diverse backgrounds, ages, and personalities. Focus on the "${theme}" theme. Ensure the "looks" field is detailed enough for AI image generation. Return as a JSON array.`;
+    }
+
+    const systemContent = question
+      ? `You are a creative character designer. Generate unique, interesting personas with DIVERSE PERSPECTIVES who would have different viewpoints on the question: "${question}". ${moralityInstruction} Create characters with varied backgrounds and expertise that would lead to contrasting, thoughtful answers. Return valid JSON only.`
+      : `You are a creative character designer. Generate unique, interesting personas based on the theme: "${theme}". ${moralityInstruction} Return valid JSON only.`;
 
     const response = await openai.chat.completions.create({
       model: "google/gemini-flash-1.5",
       messages: [
         {
           role: "system",
-          content: `You are a creative character designer. Generate unique, interesting personas based on the theme: "${theme}". ${moralityInstruction} Return valid JSON only.`,
+          content: systemContent,
         },
         {
           role: "user",

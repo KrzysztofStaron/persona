@@ -32,7 +32,7 @@ const PersonaGrid: React.FC = () => {
   const [theme, setTheme] = useState("");
   const [count, setCount] = useState(4);
   const [isRegenerateDialogOpen, setIsRegenerateDialogOpen] = useState(false);
-  const [regenerateTheme, setRegenerateTheme] = useState("");
+  const [regenerateQuestion, setRegenerateQuestion] = useState("");
   const [regenerateCount, setRegenerateCount] = useState(4);
 
   const statusMessage = getStatusMessage();
@@ -57,15 +57,15 @@ const PersonaGrid: React.FC = () => {
   };
 
   const handleRegenerateSubmit = () => {
-    generateAll(true, regenerateTheme.trim() || undefined, regenerateCount);
+    generateAll(true, undefined, regenerateCount, regenerateQuestion.trim() || undefined);
     setIsRegenerateDialogOpen(false);
-    setRegenerateTheme("");
+    setRegenerateQuestion("");
     setRegenerateCount(4);
   };
 
   const handleRegenerateCancel = () => {
     setIsRegenerateDialogOpen(false);
-    setRegenerateTheme("");
+    setRegenerateQuestion("");
     setRegenerateCount(4);
   };
 
@@ -105,8 +105,6 @@ const PersonaGrid: React.FC = () => {
       {/* Theme input field - shown when no personas and not loading */}
       {personas.length === 0 && !isLoading && (
         <div className="mb-8 p-6 bg-zinc-900 rounded-lg border border-zinc-800">
-          <h2 className="text-xl font-semibold text-white mb-4">Create Your Personas</h2>
-          <p className="text-zinc-400 mb-4">Enter a theme or topic to generate unique personas around. Be creative!</p>
           <div className="flex gap-3 mb-4">
             <input
               type="text"
@@ -151,7 +149,7 @@ const PersonaGrid: React.FC = () => {
             size="lg"
             variant="outline"
           >
-            🔄 Create new characters
+            🔄 Ask a new question
           </Button>
         </div>
       )}
@@ -184,9 +182,9 @@ const PersonaGrid: React.FC = () => {
       <Dialog open={isRegenerateDialogOpen} onOpenChange={setIsRegenerateDialogOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-700">
           <DialogHeader>
-            <DialogTitle className="text-white">Regenerate All Personas</DialogTitle>
+            <DialogTitle className="text-white">Create New Personas</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Enter a new theme to generate fresh personas around. Leave empty to use the default theme.
+              Ask a question to generate fresh personas with diverse perspectives on that topic.
             </DialogDescription>
           </DialogHeader>
 
@@ -194,9 +192,9 @@ const PersonaGrid: React.FC = () => {
             <div>
               <input
                 type="text"
-                placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
-                value={regenerateTheme}
-                onChange={e => setRegenerateTheme(e.target.value)}
+                placeholder="e.g., What's the best way to learn programming? How do I start a business?"
+                value={regenerateQuestion}
+                onChange={e => setRegenerateQuestion(e.target.value)}
                 onKeyPress={handleRegenerateKeyPress}
                 className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
               />
@@ -223,7 +221,7 @@ const PersonaGrid: React.FC = () => {
               Cancel
             </Button>
             <Button onClick={handleRegenerateSubmit} className="bg-accent hover:bg-accent/80 text-white">
-              Regenerate
+              Create Personas
             </Button>
           </DialogFooter>
         </DialogContent>

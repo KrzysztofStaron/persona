@@ -14,7 +14,7 @@ interface PersonaContextType {
   isClientMounted: boolean;
   cacheExists: boolean;
   cacheExpirationHours: number;
-  generateAll: (forceRegenerate?: boolean, theme?: string, count?: number) => Promise<void>;
+  generateAll: (forceRegenerate?: boolean, theme?: string, count?: number, question?: string) => Promise<void>;
   handleRegenerate: () => void;
   getStatusMessage: () => string | null;
   updatePersona: (index: number, updatedPersona: Persona) => void;
@@ -68,7 +68,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
     setCacheExpirationHours(getCacheExpirationHours());
   };
 
-  const generateAll = async (forceRegenerate = false, theme?: string, count: number = 4) => {
+  const generateAll = async (forceRegenerate = false, theme?: string, count: number = 4, question?: string) => {
     try {
       setError(null);
 
@@ -86,7 +86,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
 
       // Generate personas
       setIsGeneratingPersonas(true);
-      const newPersonas = await generatePersonas(count, theme || "realistic");
+      const newPersonas = await generatePersonas(count, theme || "realistic", question);
 
       // Display personas immediately (without avatars)
       setPersonas(newPersonas);

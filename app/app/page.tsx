@@ -33,26 +33,8 @@ export default function Page() {
         </div>
 
         <PersonaProvider>
-          {/* Persona Grid Section */}
-          <div className="mb-20">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-3">Meet the Personas</h2>
-              <p className="text-zinc-400 text-lg">
-                Discover unique AI personalities, each with their own traits, backgrounds, and conversation styles.
-              </p>
-            </div>
-
-            <div className="relative">
-              {/* Subtle background glow */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl blur-xl"></div>
-              <div className="relative bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-zinc-800 p-8">
-                <PersonaGrid />
-              </div>
-            </div>
-          </div>
-
           {/* Chat Section */}
-          <div className="mb-16">
+          <div className="mb-20">
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-white mb-3">Interactive Conversations</h2>
               <p className="text-zinc-400 text-lg">
@@ -65,6 +47,24 @@ export default function Page() {
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-teal-500/5 to-cyan-500/5 rounded-3xl blur-xl"></div>
               <div className="relative bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-zinc-800 p-8">
                 <ChatWithAll />
+              </div>
+            </div>
+          </div>
+
+          {/* Persona Grid Section */}
+          <div className="mb-16">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-white mb-3">Meet the Personas</h2>
+              <p className="text-zinc-400 text-lg">
+                Discover unique AI personalities, each with their own traits, backgrounds, and conversation styles.
+              </p>
+            </div>
+
+            <div className="relative">
+              {/* Subtle background glow */}
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl blur-xl"></div>
+              <div className="relative bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-zinc-800 p-8">
+                <PersonaGrid />
               </div>
             </div>
           </div>

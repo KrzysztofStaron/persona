@@ -7,17 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePersonaContext } from "@/contexts/PersonaContext";
 import { chatWithPersonaStream } from "@/app/actions/chatWithPersonaStream";
 import { OpenAI } from "openai";
-import { Loader2, Send, Download, Image as ImageIcon, X, Plus } from "lucide-react";
+import { Loader2, Send, Download, Image as ImageIcon, X, Plus, Check, Clock } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
 
 type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -45,10 +37,8 @@ const ChatWithAll = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [currentUserMessage, setCurrentUserMessage] = useState<UserMessage | null>(null);
-  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
-  const [generateTheme, setGenerateTheme] = useState("");
-  const [generateCount, setGenerateCount] = useState(4);
-  const [hasUserDismissedDialog, setHasUserDismissedDialog] = useState(false);
+  const [isGeneratingResponses, setIsGeneratingResponses] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { personas, generateAll, isClientMounted, isGeneratingPersonas } = usePersonaContext();
 
@@ -62,81 +52,23 @@ const ChatWithAll = () => {
     };
   }, []);
 
-  // Auto-open generation dialog when no personas are available
+  // Auto-continue chat after personas are generated from a question
   useEffect(() => {
-    if (
-      isClientMounted &&
-      personas.length === 0 &&
-      !isGeneratingPersonas &&
-      !isGenerateDialogOpen &&
-      !hasUserDismissedDialog
-    ) {
-      // Small delay to ensure everything is loaded
-      const timer = setTimeout(() => {
-        setIsGenerateDialogOpen(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isClientMounted, personas.length, isGeneratingPersonas, isGenerateDialogOpen, hasUserDismissedDialog]);
+    const continueWithQuestion = async () => {
+      if (personas.length > 0 && isLoading && currentUserMessage && currentUserMessage.text) {
+        // Personas were just generated, now answer the original question
+        console.log("Continuing with original question:", currentUserMessage.text);
 
-  // Reset dismissed flag when personas are generated
-  useEffect(() => {
-    if (personas.length > 0) {
-      setHasUserDismissedDialog(false);
-    }
-  }, [personas.length]);
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (!files) return;
-
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith("image/")) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          const base64 = e.target?.result as string;
-          const newImage: UploadedImage = {
-            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-            file,
-            url: URL.createObjectURL(file),
-            base64,
-          };
-          setUploadedImages(prev => [...prev, newImage]);
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  };
-
-  const handleRemoveImage = (imageId: string) => {
-    setUploadedImages(prev => {
-      const imageToRemove = prev.find(img => img.id === imageId);
-      if (imageToRemove) {
-        URL.revokeObjectURL(imageToRemove.url);
-      }
-      return prev.filter(img => img.id !== imageId);
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if ((inputValue.trim() || uploadedImages.length > 0) && personas.length > 0) {
-      setIsLoading(true);
-
-      try {
-        // Create chat history with user message including images
         const messageContent: any = [];
 
-        // Add text if present
-        if (inputValue.trim()) {
-          messageContent.push({
-            type: "text",
-            text: inputValue.trim(),
-          });
-        }
+        // Add text
+        messageContent.push({
+          type: "text",
+          text: currentUserMessage.text,
+        });
 
         // Add images if present
-        uploadedImages.forEach(image => {
+        currentUserMessage.images.forEach(image => {
           messageContent.push({
             type: "image_url",
             image_url: {
@@ -152,12 +84,6 @@ const ChatWithAll = () => {
           },
         ];
 
-        // Save the current user message
-        setCurrentUserMessage({
-          text: inputValue.trim(),
-          images: [...uploadedImages],
-        });
-
         // Initialize responses for all personas
         const initialResponses: PersonaResponse[] = personas.map(persona => ({
           personaName: persona.name,
@@ -165,10 +91,7 @@ const ChatWithAll = () => {
           response: "",
         }));
         setResponses(initialResponses);
-        setInputValue("");
-        // Clear uploaded images
-        uploadedImages.forEach(image => URL.revokeObjectURL(image.url));
-        setUploadedImages([]);
+        setIsGeneratingResponses(true);
 
         // Create promises for all persona streams
         const streamPromises = personas.map(async (persona, index) => {
@@ -208,11 +131,163 @@ const ChatWithAll = () => {
 
         // Wait for all streams to complete
         await Promise.all(streamPromises);
-      } catch (error) {
-        console.error("Error chatting with personas:", error);
-      } finally {
+        setIsGeneratingResponses(false);
         setIsLoading(false);
       }
+    };
+
+    continueWithQuestion();
+  }, [personas.length, isLoading, currentUserMessage]);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const base64 = e.target?.result as string;
+          const newImage: UploadedImage = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            file,
+            url: URL.createObjectURL(file),
+            base64,
+          };
+          setUploadedImages(prev => [...prev, newImage]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const handleRemoveImage = (imageId: string) => {
+    setUploadedImages(prev => {
+      const imageToRemove = prev.find(img => img.id === imageId);
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.url);
+      }
+      return prev.filter(img => img.id !== imageId);
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputValue.trim() && uploadedImages.length === 0) return;
+
+    setIsLoading(true);
+
+    try {
+      // If no personas exist, generate them based on the question
+      if (personas.length === 0 && inputValue.trim()) {
+        console.log("Generating personas for question:", inputValue.trim());
+
+        // Save the current user message for later use
+        setCurrentUserMessage({
+          text: inputValue.trim(),
+          images: [...uploadedImages],
+        });
+
+        await generateAll(true, undefined, 4, inputValue.trim());
+
+        // Clear the input but keep the loading state until personas are generated
+        setInputValue("");
+        uploadedImages.forEach(image => URL.revokeObjectURL(image.url));
+        setUploadedImages([]);
+        return;
+      }
+
+      // Normal chat flow when personas exist
+      // Create chat history with user message including images
+      const messageContent: any = [];
+
+      // Add text if present
+      if (inputValue.trim()) {
+        messageContent.push({
+          type: "text",
+          text: inputValue.trim(),
+        });
+      }
+
+      // Add images if present
+      uploadedImages.forEach(image => {
+        messageContent.push({
+          type: "image_url",
+          image_url: {
+            url: image.base64,
+          },
+        });
+      });
+
+      const chatHistory: ChatMessage[] = [
+        {
+          role: "user",
+          content: messageContent,
+        },
+      ];
+
+      // Save the current user message
+      setCurrentUserMessage({
+        text: inputValue.trim(),
+        images: [...uploadedImages],
+      });
+
+      // Initialize responses for all personas
+      const initialResponses: PersonaResponse[] = personas.map(persona => ({
+        personaName: persona.name,
+        personaImage: persona.image,
+        response: "",
+      }));
+      setResponses(initialResponses);
+      setIsGeneratingResponses(true);
+      setInputValue("");
+      // Clear uploaded images
+      uploadedImages.forEach(image => URL.revokeObjectURL(image.url));
+      setUploadedImages([]);
+
+      // Create promises for all persona streams
+      const streamPromises = personas.map(async (persona, index) => {
+        try {
+          const stream = await chatWithPersonaStream(persona, chatHistory);
+          const reader = stream.getReader();
+          const decoder = new TextDecoder();
+          let fullContent = "";
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            fullContent += chunk;
+
+            // Update this persona's response
+            setResponses(prevResponses => {
+              const newResponses = [...prevResponses];
+              if (newResponses[index]) {
+                newResponses[index].response = fullContent;
+              }
+              return newResponses;
+            });
+          }
+        } catch (error) {
+          console.error(`Error chatting with ${persona.name}:`, error);
+          setResponses(prevResponses => {
+            const newResponses = [...prevResponses];
+            if (newResponses[index]) {
+              newResponses[index].response = "Error: Could not get response";
+            }
+            return newResponses;
+          });
+        }
+      });
+
+      // Wait for all streams to complete
+      await Promise.all(streamPromises);
+    } catch (error) {
+      console.error("Error chatting with personas:", error);
+    } finally {
+      setIsGeneratingResponses(false);
+      setIsLoading(false);
     }
   };
 
@@ -226,6 +301,8 @@ const ChatWithAll = () => {
     // Clear uploaded images
     uploadedImages.forEach(image => URL.revokeObjectURL(image.url));
     setUploadedImages([]);
+    // Reset progress states
+    setIsGeneratingResponses(false);
   };
 
   const handleDownloadPersonas = () => {
@@ -242,44 +319,10 @@ const ChatWithAll = () => {
     linkElement.click();
   };
 
-  const handleGenerateSubmit = () => {
-    generateAll(true, generateTheme.trim() || undefined, generateCount);
-    setIsGenerateDialogOpen(false);
-    setGenerateTheme("");
-    setGenerateCount(4);
-  };
-
-  const handleGenerateCancel = () => {
-    setIsGenerateDialogOpen(false);
-    setGenerateTheme("");
-    setGenerateCount(4);
-    setHasUserDismissedDialog(true);
-  };
-
-  const handleGenerateKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleGenerateSubmit();
-    }
-  };
-
-  const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (value >= 1 && value <= 30) {
-      setGenerateCount(value);
-    }
-  };
-
-  const handleChatSectionClick = () => {
-    if (personas.length === 0) {
-      setIsGenerateDialogOpen(true);
-      setHasUserDismissedDialog(false);
-    }
-  };
-
   return (
     <div className="mt-12">
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-white">Chat with All Personas</h2>
           <Button
             onClick={handleDownloadPersonas}
@@ -292,93 +335,140 @@ const ChatWithAll = () => {
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mb-4">
-          <div className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              placeholder="Ask something to all personas..."
-              className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500"
-              disabled={isLoading || personas.length === 0}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[42px] w-[42px] flex items-center justify-center"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading || personas.length === 0}
-            >
-              <ImageIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              type="submit"
-              variant="outline"
-              className="text-white px-6 h-[42px] flex items-center justify-center"
-              disabled={isLoading || personas.length === 0 || (!inputValue.trim() && uploadedImages.length === 0)}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send
-                </>
-              )}
-            </Button>
-          </div>
-
-          {/* Hidden file input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-
-          {/* Display uploaded images */}
-          {uploadedImages.length > 0 && (
-            <div className="flex flex-wrap gap-2 p-2 bg-zinc-800/50 border border-zinc-700 rounded-lg">
-              {uploadedImages.map(image => (
-                <div key={image.id} className="relative group">
-                  <img src={image.url} alt={image.file.name} className="w-16 h-16 object-cover rounded-lg" />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleRemoveImage(image.id)}
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </div>
-              ))}
+        {/* Progress Indicator */}
+        {(isGeneratingPersonas || isGeneratingResponses) && (
+          <div className="mb-6 p-4 bg-zinc-900/50 border border-zinc-700 rounded-lg">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                {isGeneratingPersonas ? (
+                  <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
+                ) : (
+                  <Check className="w-5 h-5 text-green-400" />
+                )}
+                <span className={`text-sm ${isGeneratingPersonas ? "text-blue-400" : "text-green-400"}`}>
+                  Generating relevant personas
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                {isGeneratingResponses ? (
+                  <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
+                ) : personas.length > 0 && !isGeneratingPersonas ? (
+                  <Check className="w-5 h-5 text-green-400" />
+                ) : (
+                  <div className="w-5 h-5 rounded-full border-2 border-zinc-600"></div>
+                )}
+                <span
+                  className={`text-sm ${
+                    isGeneratingResponses
+                      ? "text-blue-400"
+                      : personas.length > 0 && !isGeneratingPersonas
+                      ? "text-green-400"
+                      : "text-zinc-500"
+                  }`}
+                >
+                  Generating responses
+                </span>
+              </div>
             </div>
-          )}
-        </form>
+          </div>
+        )}
+
+        {/* Central Text Field */}
+        <div className="max-w-4xl mx-auto">
+          <form onSubmit={handleSubmit} className="mb-4">
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={e => setInputValue(e.target.value)}
+                placeholder={
+                  personas.length === 0
+                    ? "Ask a question to generate relevant personas..."
+                    : "Ask something to all personas..."
+                }
+                className="flex-1 px-6 py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-lg"
+                disabled={isLoading}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[58px] w-[58px] flex items-center justify-center"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                <ImageIcon className="w-5 h-5" />
+              </Button>
+              <Button
+                type="submit"
+                variant="outline"
+                className="text-white px-8 h-[58px] flex items-center justify-center"
+                disabled={isLoading || (!inputValue.trim() && uploadedImages.length === 0)}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    {isGeneratingPersonas ? "Creating..." : "Sending..."}
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-5 h-5 mr-2" />
+                    Send
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+
+            {/* Display uploaded images */}
+            {uploadedImages.length > 0 && (
+              <div className="flex flex-wrap gap-2 p-2 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+                {uploadedImages.map(image => (
+                  <div key={image.id} className="relative group">
+                    <img src={image.url} alt={image.file.name} className="w-16 h-16 object-cover rounded-lg" />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleRemoveImage(image.id)}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </form>
+        </div>
 
         {responses.length > 0 && (
-          <div className="flex justify-between items-center mb-4">
-            <p className="text-zinc-400 text-sm">
-              {responses.length} response{responses.length !== 1 ? "s" : ""}
-            </p>
-            <Button
-              onClick={handleClear}
-              variant="outline"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-4 h-[34px] text-sm"
-            >
-              Clear
-            </Button>
+          <div className="max-w-4xl mx-auto">
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-zinc-400 text-sm">
+                {responses.length} response{responses.length !== 1 ? "s" : ""}
+              </p>
+              <Button
+                onClick={handleClear}
+                variant="outline"
+                className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-4 h-[34px] text-sm"
+              >
+                Clear
+              </Button>
+            </div>
           </div>
         )}
       </div>
 
-      <div className="space-y-4">
+      <div className="max-w-4xl mx-auto space-y-4">
         {/* Show user's message */}
         {currentUserMessage && (
           <Card className="bg-zinc-900/50 border-zinc-700 p-4">
@@ -475,94 +565,38 @@ const ChatWithAll = () => {
       </div>
 
       {responses.length === 0 && !isLoading && (
-        <div className="text-center py-8">
-          {personas.length === 0 ? (
-            <div
-              className="cursor-pointer p-8 rounded-lg border-2 border-dashed border-zinc-700 hover:border-zinc-600 transition-colors group"
-              onClick={handleChatSectionClick}
-            >
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
-                  <Plus className="w-8 h-8 text-zinc-400 group-hover:text-zinc-300" />
-                </div>
-                <div>
-                  <p className="text-zinc-400 text-lg font-medium group-hover:text-zinc-300">No personas available</p>
-                  <p className="text-zinc-500 text-sm mt-1">Click here to generate personas first</p>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-8">
+            {personas.length === 0 ? (
+              <div className="p-8 rounded-lg border border-zinc-700">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center">
+                    <Plus className="w-8 h-8 text-zinc-400" />
+                  </div>
+                  <div>
+                    <p className="text-zinc-400 text-lg font-medium">Ready for your first question!</p>
+                    <p className="text-zinc-500 text-sm mt-1">
+                      Ask any question above to generate relevant personas and get diverse perspectives
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-zinc-500">No responses yet. Ask something to see what each persona thinks!</p>
-          )}
+            ) : (
+              <p className="text-zinc-500">No responses yet. Ask something to see what each persona thinks!</p>
+            )}
+          </div>
         </div>
       )}
 
       {isLoading && (
-        <div className="text-center py-8">
-          <p className="text-zinc-400">Getting responses from all personas...</p>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-8">
+            <p className="text-zinc-400">
+              {isGeneratingPersonas ? "Creating relevant personas..." : "Getting responses from all personas..."}
+            </p>
+          </div>
         </div>
       )}
-
-      {/* Generate Personas Dialog */}
-      <Dialog
-        open={isGenerateDialogOpen}
-        onOpenChange={open => {
-          setIsGenerateDialogOpen(open);
-          if (!open) {
-            setHasUserDismissedDialog(true);
-          }
-        }}
-      >
-        <DialogContent className="bg-zinc-900 border-zinc-700">
-          <DialogHeader>
-            <DialogTitle className="text-white">Generate Personas</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Enter a theme to generate unique personas around. Leave empty to use the default theme.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4 space-y-4">
-            <div>
-              <input
-                type="text"
-                placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
-                value={generateTheme}
-                onChange={e => setGenerateTheme(e.target.value)}
-                onKeyPress={handleGenerateKeyPress}
-                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <label htmlFor="generate-count" className="text-sm text-zinc-400 font-medium">
-                Number of personas:
-              </label>
-              <input
-                id="generate-count"
-                type="number"
-                min="1"
-                max="30"
-                value={generateCount}
-                onChange={handleCountChange}
-                className="w-20 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
-              />
-              <span className="text-xs text-zinc-500">(max 30)</span>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              onClick={handleGenerateCancel}
-              variant="outline"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleGenerateSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">
-              Generate
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
