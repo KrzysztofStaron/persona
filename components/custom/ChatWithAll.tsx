@@ -235,7 +235,7 @@ const ChatWithAll = () => {
             <Button
               type="button"
               variant="outline"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-3 h-[42px]"
+              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[42px] w-[42px] flex items-center justify-center"
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || personas.length === 0}
             >
@@ -244,7 +244,7 @@ const ChatWithAll = () => {
             <Button
               type="submit"
               variant="outline"
-              className="text-white px-6  h-[42px]"
+              className="text-white px-6 h-[42px] flex items-center justify-center"
               disabled={isLoading || personas.length === 0 || (!inputValue.trim() && uploadedImages.length === 0)}
             >
               {isLoading ? (

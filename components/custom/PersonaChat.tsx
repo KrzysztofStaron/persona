@@ -422,8 +422,7 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
             <Button
               type="button"
               variant="outline"
-              size="icon"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[46px] w-[46px] flex items-center justify-center"
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
             >
@@ -433,8 +432,7 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
               onClick={handleSendMessage}
               disabled={(!inputMessage.trim() && uploadedImages.length === 0) || isLoading}
               variant="outline"
-              size="icon"
-              className="text-white px-6 h-auto flex items-center justify-center"
+              className="text-white h-[46px] px-4 flex items-center justify-center"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
