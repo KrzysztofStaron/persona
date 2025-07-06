@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Persona } from "@/types/persona";
 import { chatWithPersonaStream } from "@/app/actions/chatWithPersonaStream";
 import { generatePersonas } from "@/app/actions/generatePersonas";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { devCache } from "@/lib/devCache";
-import { Loader2, RefreshCw, Send } from "lucide-react";
+import { Loader2, RefreshCw, Send, Image as ImageIcon, X } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -25,12 +25,22 @@ type ChatMessage = {
   role: "user" | "assistant";
   content: string;
   timestamp: number;
+  images?: UploadedImage[];
 };
+
+interface UploadedImage {
+  id: string;
+  file: File;
+  url: string;
+  base64: string;
+}
 
 const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onPersonaUpdated }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Generate a unique persona ID based on name and characteristics
   const personaId = `${persona.name}-${persona.age}-${persona.personality.join("-")}`;
@@ -45,6 +55,45 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
 
   const saveMessage = (message: ChatMessage) => {
     devCache.saveChatMessage(persona.name, personaId, message);
+  };
+
+  // Cleanup image URLs on component unmount
+  useEffect(() => {
+    return () => {
+      uploadedImages.forEach(image => URL.revokeObjectURL(image.url));
+    };
+  }, []);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const base64 = e.target?.result as string;
+          const newImage: UploadedImage = {
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            file,
+            url: URL.createObjectURL(file),
+            base64,
+          };
+          setUploadedImages(prev => [...prev, newImage]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const handleRemoveImage = (imageId: string) => {
+    setUploadedImages(prev => {
+      const imageToRemove = prev.find(img => img.id === imageId);
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.url);
+      }
+      return prev.filter(img => img.id !== imageId);
+    });
   };
 
   const handleRegeneratePersona = async () => {
@@ -78,17 +127,21 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
   };
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() && uploadedImages.length === 0) return;
 
     const userMessage: ChatMessage = {
       role: "user",
       content: inputMessage,
       timestamp: Date.now(),
+      images: [...uploadedImages],
     };
 
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInputMessage("");
+    // Clear uploaded images
+    uploadedImages.forEach(image => URL.revokeObjectURL(image.url));
+    setUploadedImages([]);
     setIsLoading(true);
 
     // Save user message
@@ -104,10 +157,40 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
     setMessages([...updatedMessages, assistantMessage]);
 
     try {
-      const chatHistory = updatedMessages.map(msg => ({
-        role: msg.role as "user" | "assistant",
-        content: msg.content,
-      }));
+      const chatHistory = updatedMessages.map(msg => {
+        if (msg.role === "user" && msg.images && msg.images.length > 0) {
+          // Create multimodal message with text and images
+          const messageContent: any = [];
+
+          // Add text if present
+          if (msg.content.trim()) {
+            messageContent.push({
+              type: "text",
+              text: msg.content,
+            });
+          }
+
+          // Add images
+          msg.images.forEach(image => {
+            messageContent.push({
+              type: "image_url",
+              image_url: {
+                url: image.base64,
+              },
+            });
+          });
+
+          return {
+            role: msg.role as "user" | "assistant",
+            content: messageContent,
+          };
+        } else {
+          return {
+            role: msg.role as "user" | "assistant",
+            content: msg.content,
+          };
+        }
+      });
 
       const stream = await chatWithPersonaStream(persona, chatHistory);
       const reader = stream.getReader();
@@ -235,46 +318,64 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
                   message.role === "user" ? "bg-blue-600 text-white" : "bg-zinc-800 text-zinc-100"
                 }`}
               >
-                <div className="text-sm">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                      em: ({ children }) => <em className="italic">{children}</em>,
-                      code: ({ children }) => (
-                        <code className="bg-zinc-900/50 px-1 py-0.5 rounded text-xs font-mono">{children}</code>
-                      ),
-                      pre: ({ children }) => (
-                        <pre className="bg-zinc-900/50 p-2 rounded overflow-x-auto text-xs font-mono mt-2 mb-2">
-                          {children}
-                        </pre>
-                      ),
-                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
-                      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>,
-                      li: ({ children }) => <li className="text-sm">{children}</li>,
-                      blockquote: ({ children }) => (
-                        <blockquote className="border-l-2 border-zinc-600 pl-2 italic text-zinc-300 my-2">
-                          {children}
-                        </blockquote>
-                      ),
-                      h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-                      h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-                      h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
-                      a: ({ href, children }) => (
-                        <a
-                          href={href}
-                          className="text-blue-400 hover:text-blue-300 underline"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {children}
-                        </a>
-                      ),
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
+                <div className="text-sm space-y-2">
+                  {/* Display images if present */}
+                  {message.images && message.images.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {message.images.map(image => (
+                        <img
+                          key={image.id}
+                          src={image.url}
+                          alt={image.file.name}
+                          className="max-w-32 max-h-32 object-cover rounded-lg border border-white/20"
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Display text content if present */}
+                  {message.content && (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                        strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                        em: ({ children }) => <em className="italic">{children}</em>,
+                        code: ({ children }) => (
+                          <code className="bg-zinc-900/50 px-1 py-0.5 rounded text-xs font-mono">{children}</code>
+                        ),
+                        pre: ({ children }) => (
+                          <pre className="bg-zinc-900/50 p-2 rounded overflow-x-auto text-xs font-mono mt-2 mb-2">
+                            {children}
+                          </pre>
+                        ),
+                        ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2">{children}</ol>,
+                        li: ({ children }) => <li className="text-sm">{children}</li>,
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-2 border-zinc-600 pl-2 italic text-zinc-300 my-2">
+                            {children}
+                          </blockquote>
+                        ),
+                        h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+                        a: ({ href, children }) => (
+                          <a
+                            href={href}
+                            className="text-blue-400 hover:text-blue-300 underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  )}
+
                   {/* Show blinking cursor for assistant messages while loading */}
                   {message.role === "assistant" && isLoading && index === messages.length - 1 && (
                     <span className="inline-block w-0.5 h-4 bg-zinc-300 animate-pulse ml-0.5"></span>
@@ -288,6 +389,26 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
 
         {/* Input Area */}
         <div className="border-t border-zinc-700 pt-4">
+          {/* Display uploaded images */}
+          {uploadedImages.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3 p-2 bg-zinc-800/50 border border-zinc-700 rounded-lg">
+              {uploadedImages.map(image => (
+                <div key={image.id} className="relative group">
+                  <img src={image.url} alt={image.file.name} className="w-16 h-16 object-cover rounded-lg" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveImage(image.id)}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="flex gap-2">
             <textarea
               value={inputMessage}
@@ -299,8 +420,18 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
               disabled={isLoading}
             />
             <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              <ImageIcon className="w-4 h-4" />
+            </Button>
+            <Button
               onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading}
+              disabled={(!inputMessage.trim() && uploadedImages.length === 0) || isLoading}
               variant="outline"
               size="icon"
               className="text-white px-6 h-auto flex items-center justify-center"
@@ -308,6 +439,16 @@ const PersonaChat: React.FC<PersonaChatProps> = ({ persona, isOpen, onClose, onP
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </Button>
           </div>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageUpload}
+            className="hidden"
+          />
         </div>
       </DialogContent>
     </Dialog>

@@ -84,7 +84,10 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
 
   return (
     <>
-      <Card className="pl-4 transition-all duration-200 h-full cursor-default border-zinc-700 relative opacity-75">
+      <Card
+        className="pl-4 transition-all duration-200 h-full cursor-pointer border-zinc-700 relative opacity-75 hover:opacity-100 hover:border-zinc-600"
+        onClick={handleCardClick}
+      >
         {/* Copy JSON Button */}
         <Button
           variant="ghost"
