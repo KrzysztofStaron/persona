@@ -24,22 +24,24 @@ const PersonaGrid: React.FC = () => {
     cacheExists,
     cacheExpirationHours,
     generateAll,
-    handleRegenerate,
     getStatusMessage,
     isGeneratingPersonas,
     isGeneratingAvatars,
   } = usePersonaContext();
 
   const [theme, setTheme] = useState("");
+  const [count, setCount] = useState(4);
   const [isRegenerateDialogOpen, setIsRegenerateDialogOpen] = useState(false);
   const [regenerateTheme, setRegenerateTheme] = useState("");
+  const [regenerateCount, setRegenerateCount] = useState(4);
 
   const statusMessage = getStatusMessage();
   const isLoading = isGeneratingPersonas || isGeneratingAvatars;
+  const isGeneratingPersonasOnly = isGeneratingPersonas;
 
   const handleGenerateWithTheme = () => {
     if (theme.trim()) {
-      generateAll(true, theme.trim());
+      generateAll(true, theme.trim(), count);
       setTheme("");
     }
   };
@@ -51,23 +53,39 @@ const PersonaGrid: React.FC = () => {
   };
 
   const handleDebugRegenerate = (theme?: string) => {
-    generateAll(true, theme);
+    generateAll(true, theme, count);
   };
 
   const handleRegenerateSubmit = () => {
-    generateAll(true, regenerateTheme.trim() || undefined);
+    generateAll(true, regenerateTheme.trim() || undefined, regenerateCount);
     setIsRegenerateDialogOpen(false);
     setRegenerateTheme("");
+    setRegenerateCount(4);
   };
 
   const handleRegenerateCancel = () => {
     setIsRegenerateDialogOpen(false);
     setRegenerateTheme("");
+    setRegenerateCount(4);
   };
 
   const handleRegenerateKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleRegenerateSubmit();
+    }
+  };
+
+  const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (value >= 1 && value <= 30) {
+      setCount(value);
+    }
+  };
+
+  const handleRegenerateCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (value >= 1 && value <= 30) {
+      setRegenerateCount(value);
     }
   };
 
@@ -89,7 +107,7 @@ const PersonaGrid: React.FC = () => {
         <div className="mb-8 p-6 bg-zinc-900 rounded-lg border border-zinc-800">
           <h2 className="text-xl font-semibold text-white mb-4">Create Your Personas</h2>
           <p className="text-zinc-400 mb-4">Enter a theme or topic to generate unique personas around. Be creative!</p>
-          <div className="flex gap-3">
+          <div className="flex gap-3 mb-4">
             <input
               type="text"
               placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
@@ -106,11 +124,26 @@ const PersonaGrid: React.FC = () => {
               Generate
             </button>
           </div>
+          <div className="flex items-center gap-3">
+            <label htmlFor="count" className="text-sm text-zinc-400 font-medium">
+              Number of personas:
+            </label>
+            <input
+              id="count"
+              type="number"
+              min="1"
+              max="30"
+              value={count}
+              onChange={handleCountChange}
+              className="w-20 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+            />
+            <span className="text-xs text-zinc-500">(max 30)</span>
+          </div>
         </div>
       )}
 
-      {/* Regenerate button - shown when personas exist and not loading */}
-      {personas.length > 0 && !isLoading && (
+      {/* Regenerate button - shown when personas exist and not generating personas */}
+      {personas.length > 0 && !isGeneratingPersonasOnly && (
         <div className="mb-6 flex flex-col items-center gap-2">
           {!cacheExists && (
             <p className="text-zinc-500 text-sm">✨ Showing default personas - click below to generate custom ones</p>
@@ -131,16 +164,16 @@ const PersonaGrid: React.FC = () => {
           ? personas.map((persona, index) => (
               <PersonaCard key={`${persona.name}-${index}`} persona={persona} personaIndex={index} />
             ))
-          : isLoading
-          ? // Show skeleton cards while loading
-            Array.from({ length: 4 }).map((_, index) => <PersonaCardSkeleton key={`skeleton-${index}`} />)
+          : isGeneratingPersonasOnly
+          ? // Show skeleton cards while generating personas
+            Array.from({ length: count }).map((_, index) => <PersonaCardSkeleton key={`skeleton-${index}`} />)
           : null}
       </div>
 
       {error && (
         <div className="mt-8 text-center">
           <button
-            onClick={() => generateAll(true)}
+            onClick={() => generateAll(true, undefined, count)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
           >
             Try Again
@@ -160,15 +193,32 @@ const PersonaGrid: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="py-4">
-            <input
-              type="text"
-              placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
-              value={regenerateTheme}
-              onChange={e => setRegenerateTheme(e.target.value)}
-              onKeyPress={handleRegenerateKeyPress}
-              className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
-            />
+          <div className="py-4 space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
+                value={regenerateTheme}
+                onChange={e => setRegenerateTheme(e.target.value)}
+                onKeyPress={handleRegenerateKeyPress}
+                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <label htmlFor="regenerate-count" className="text-sm text-zinc-400 font-medium">
+                Number of personas:
+              </label>
+              <input
+                id="regenerate-count"
+                type="number"
+                min="1"
+                max="30"
+                value={regenerateCount}
+                onChange={handleRegenerateCountChange}
+                className="w-20 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+              <span className="text-xs text-zinc-500">(max 30)</span>
+            </div>
           </div>
 
           <DialogFooter>

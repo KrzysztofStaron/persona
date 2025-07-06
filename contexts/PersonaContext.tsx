@@ -14,7 +14,7 @@ interface PersonaContextType {
   isClientMounted: boolean;
   cacheExists: boolean;
   cacheExpirationHours: number;
-  generateAll: (forceRegenerate?: boolean, theme?: string) => Promise<void>;
+  generateAll: (forceRegenerate?: boolean, theme?: string, count?: number) => Promise<void>;
   handleRegenerate: () => void;
   getStatusMessage: () => string | null;
   updatePersona: (index: number, updatedPersona: Persona) => void;
@@ -52,10 +52,10 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
     return false;
   };
 
-  const loadFallbackPersonas = async () => {
+  const loadFallbackPersonas = async (count: number = 4) => {
     try {
-      const fallbackPersonas = await getFallbackPersonas(4);
-      setPersonas(fallbackPersonas);
+      const fallbackPersonas = await getFallbackPersonas(count);
+      //setPersonas(fallbackPersonas);
     } catch (error) {
       console.error("Error loading fallback personas:", error);
     }
@@ -68,7 +68,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
     setCacheExpirationHours(getCacheExpirationHours());
   };
 
-  const generateAll = async (forceRegenerate = false, theme?: string) => {
+  const generateAll = async (forceRegenerate = false, theme?: string, count: number = 4) => {
     try {
       setError(null);
 
@@ -86,7 +86,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
 
       // Generate personas
       setIsGeneratingPersonas(true);
-      const newPersonas = await generatePersonas(4, theme || "realistic");
+      const newPersonas = await generatePersonas(count, theme || "realistic");
 
       // Display personas immediately (without avatars)
       setPersonas(newPersonas);
@@ -189,7 +189,7 @@ export const PersonaProvider: React.FC<PersonaProviderProps> = ({ children }) =>
         loadFromCache();
       } else {
         // Load fallback personas as defaults when no cache exists
-        loadFallbackPersonas();
+        loadFallbackPersonas(4);
       }
     }
   }, [isClientMounted]);

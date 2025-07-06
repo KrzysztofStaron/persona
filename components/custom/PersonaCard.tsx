@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,8 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
     }
   }, [persona.image]);
 
-  // If all personas are being regenerated, show full skeleton
-  if (isGeneratingPersonas || isGeneratingAvatars) {
+  // Only show skeleton when personas are being generated (not just avatars)
+  if (isGeneratingPersonas) {
     return <PersonaCardSkeleton />;
   }
 
@@ -84,10 +85,7 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
 
   return (
     <>
-      <Card
-        className="pl-4 transition-all duration-200 h-full cursor-pointer hover:bg-zinc-800/50 hover:border-zinc-600 border-zinc-700 relative"
-        onClick={handleCardClick}
-      >
+      <Card className="pl-4 transition-all duration-200 h-full cursor-default border-zinc-700 relative opacity-75">
         {/* Copy JSON Button */}
         <Button
           variant="ghost"
@@ -116,21 +114,25 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
           <div className="flex items-start gap-3 h-full">
             {/* Avatar */}
             <div className="w-18 aspect-[3/4] rounded-md overflow-hidden flex items-center justify-center bg-zinc-800">
-              {isImageLoading ? (
+              {persona.image && isImageLoading ? (
                 <>
                   <Skeleton className="w-full h-full" />
 
-                  <img
+                  <Image
                     src={persona.image}
                     alt={persona.name}
+                    width={72}
+                    height={96}
                     className="w-full h-full object-cover hidden"
                     onLoad={() => setIsImageLoading(false)}
                   />
                 </>
               ) : persona.image ? (
-                <img
+                <Image
                   src={persona.image}
                   alt={persona.name}
+                  width={72}
+                  height={96}
                   className="w-full h-full object-cover"
                   onLoad={() => setIsImageLoading(false)}
                 />
@@ -164,7 +166,7 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ persona, personaIndex }) => {
 
               {/* Chat indicator */}
               <div className="mt-3 pt-2 border-t border-zinc-700">
-                <p className="text-blue-400 text-xs font-medium">Click to chat with {persona.name}</p>
+                <p className="text-zinc-500 text-xs font-medium">Click to chat with {persona.name}</p>
               </div>
             </div>
           </div>

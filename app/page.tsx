@@ -101,7 +101,7 @@ export default function Home() {
             <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
             <span className="text-white">Free & Open Source</span>
             <span className="text-zinc-500">•</span>
-            <span className="text-zinc-400">20 Creative AI Minds</span>
+            <span className="text-zinc-400">Creative AI Minds</span>
           </div>
 
           {/* Main Headline */}
@@ -132,54 +132,13 @@ export default function Home() {
             </Button>
             <Button
               variant="outline"
+              disabled={true}
               size="lg"
               className="px-8 py-4 text-lg border-zinc-700 hover:bg-zinc-900 hover:border-white text-white bg-transparent"
             >
               <Play className="w-5 h-5 mr-2" />
               Watch Demo
             </Button>
-          </div>
-
-          {/* Interactive Persona Preview */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {personas.map(persona => (
-              <Card
-                key={persona.id}
-                className={`cursor-pointer transition-all duration-300 hover:shadow-lg border-2 bg-zinc-900/50 backdrop-blur-sm ${
-                  activePersona === persona.id
-                    ? "border-orange-500 shadow-lg shadow-orange-500/20 scale-105"
-                    : "border-zinc-800 hover:border-zinc-600"
-                }`}
-                onClick={() => setActivePersona(activePersona === persona.id ? null : persona.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center mb-4">
-                    <persona.icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-1 text-white">{persona.name}</h3>
-                  <p className="text-sm text-orange-500 mb-3">{persona.role}</p>
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {persona.traits.map((trait, index) => (
-                      <span
-                        key={index}
-                        className="text-xs bg-zinc-800 border border-zinc-700 px-2 py-1 rounded-full text-zinc-300"
-                      >
-                        {trait}
-                      </span>
-                    ))}
-                  </div>
-                  {activePersona === persona.id && (
-                    <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
-                      <p className="text-sm text-zinc-400">{persona.description}</p>
-                      <Button size="sm" className="w-full bg-orange-500 text-black hover:bg-orange-600">
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Chat with {persona.name}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
           </div>
 
           {/* Open Source Badge */}
