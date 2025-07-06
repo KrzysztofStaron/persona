@@ -18,7 +18,7 @@ export async function chatWithPersonaStream(persona: Persona, chatHistory: ChatM
   const systemPrompt = generateSystemPrompt(persona);
 
   const stream = await openai.chat.completions.create({
-    model: "google/gemini-flash-1.5",
+    model: "google/gemini-2.5-flash",
     messages: [{ role: "system", content: systemPrompt }, ...chatHistory],
     stream: true,
   });

@@ -139,6 +139,31 @@ const ChatWithAll = () => {
     continueWithQuestion();
   }, [personas.length, isLoading, currentUserMessage]);
 
+  // Update response avatars when personas are updated (for avatar generation)
+  useEffect(() => {
+    if (responses.length > 0 && personas.length > 0) {
+      setResponses(prevResponses => {
+        const updatedResponses = [...prevResponses];
+        let hasUpdates = false;
+
+        // Update avatars for matching personas
+        updatedResponses.forEach((response, index) => {
+          const matchingPersona = personas.find(p => p.name === response.personaName);
+          if (matchingPersona && matchingPersona.image !== response.personaImage) {
+            updatedResponses[index] = {
+              ...response,
+              personaImage: matchingPersona.image,
+            };
+            hasUpdates = true;
+          }
+        });
+
+        // Only update state if there were actual changes
+        return hasUpdates ? updatedResponses : prevResponses;
+      });
+    }
+  }, [personas, responses.length]);
+
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files) return;
