@@ -7,9 +7,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePersonaContext } from "@/contexts/PersonaContext";
 import { chatWithPersonaStream } from "@/app/actions/chatWithPersonaStream";
 import { OpenAI } from "openai";
-import { Loader2, Send, Download, Image as ImageIcon, X } from "lucide-react";
+import { Loader2, Send, Download, Image as ImageIcon, X, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 type ChatMessage = OpenAI.Chat.Completions.ChatCompletionMessageParam;
 
@@ -37,8 +45,11 @@ const ChatWithAll = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [currentUserMessage, setCurrentUserMessage] = useState<UserMessage | null>(null);
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [generateTheme, setGenerateTheme] = useState("");
+  const [generateCount, setGenerateCount] = useState(4);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { personas } = usePersonaContext();
+  const { personas, generateAll } = usePersonaContext();
 
   // Cleanup image URLs on component unmount
   useEffect(() => {
@@ -204,6 +215,38 @@ const ChatWithAll = () => {
     linkElement.setAttribute("href", dataUri);
     linkElement.setAttribute("download", exportFileDefaultName);
     linkElement.click();
+  };
+
+  const handleGenerateSubmit = () => {
+    generateAll(true, generateTheme.trim() || undefined, generateCount);
+    setIsGenerateDialogOpen(false);
+    setGenerateTheme("");
+    setGenerateCount(4);
+  };
+
+  const handleGenerateCancel = () => {
+    setIsGenerateDialogOpen(false);
+    setGenerateTheme("");
+    setGenerateCount(4);
+  };
+
+  const handleGenerateKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleGenerateSubmit();
+    }
+  };
+
+  const handleCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (value >= 1 && value <= 30) {
+      setGenerateCount(value);
+    }
+  };
+
+  const handleChatSectionClick = () => {
+    if (personas.length === 0) {
+      setIsGenerateDialogOpen(true);
+    }
   };
 
   return (
@@ -406,11 +449,24 @@ const ChatWithAll = () => {
 
       {responses.length === 0 && !isLoading && (
         <div className="text-center py-8">
-          <p className="text-zinc-500">
-            {personas.length === 0
-              ? "Waiting for personas to load..."
-              : "No responses yet. Ask something to see what each persona thinks!"}
-          </p>
+          {personas.length === 0 ? (
+            <div
+              className="cursor-pointer p-8 rounded-lg border-2 border-dashed border-zinc-700 hover:border-zinc-600 transition-colors group"
+              onClick={handleChatSectionClick}
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-zinc-700 transition-colors">
+                  <Plus className="w-8 h-8 text-zinc-400 group-hover:text-zinc-300" />
+                </div>
+                <div>
+                  <p className="text-zinc-400 text-lg font-medium group-hover:text-zinc-300">No personas available</p>
+                  <p className="text-zinc-500 text-sm mt-1">Click here to generate personas first</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-zinc-500">No responses yet. Ask something to see what each persona thinks!</p>
+          )}
         </div>
       )}
 
@@ -419,6 +475,59 @@ const ChatWithAll = () => {
           <p className="text-zinc-400">Getting responses from all personas...</p>
         </div>
       )}
+
+      {/* Generate Personas Dialog */}
+      <Dialog open={isGenerateDialogOpen} onOpenChange={setIsGenerateDialogOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-700">
+          <DialogHeader>
+            <DialogTitle className="text-white">Generate Personas</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              Enter a theme to generate unique personas around. Leave empty to use the default theme.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
+                value={generateTheme}
+                onChange={e => setGenerateTheme(e.target.value)}
+                onKeyPress={handleGenerateKeyPress}
+                className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <label htmlFor="generate-count" className="text-sm text-zinc-400 font-medium">
+                Number of personas:
+              </label>
+              <input
+                id="generate-count"
+                type="number"
+                min="1"
+                max="30"
+                value={generateCount}
+                onChange={handleCountChange}
+                className="w-20 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              />
+              <span className="text-xs text-zinc-500">(max 30)</span>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={handleGenerateCancel}
+              variant="outline"
+              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleGenerateSubmit} className="bg-blue-600 hover:bg-blue-700 text-white">
+              Generate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
