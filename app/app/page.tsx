@@ -62,7 +62,7 @@ export default function Page() {
               variant={mode === "debate" ? "default" : "ghost"}
               size="sm"
               onClick={() => setMode("debate")}
-              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-200  ${
                 mode === "debate"
                   ? "bg-white text-black hover:bg-zinc-200"
                   : "text-zinc-400 hover:text-white hover:bg-zinc-800"
@@ -97,7 +97,11 @@ export default function Page() {
                     : "bg-gradient-to-r from-orange-500/5 via-red-500/5 to-pink-500/5"
                 }`}
               ></div>
-              <div className="relative bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-zinc-800 p-8">
+              <div
+                className={`relative bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-zinc-800 ${
+                  mode === "debate" ? "px-4 py-8 sm:p-8" : "p-8"
+                }`}
+              >
                 {mode === "chat" ? <ChatWithAll /> : <ArgumentLab />}
               </div>
             </div>

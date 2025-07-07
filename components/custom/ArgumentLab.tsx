@@ -836,7 +836,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
         )}
 
         {/* Central Input Field */}
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-none sm:max-w-4xl mx-auto">
           <form onSubmit={handleStartDebate} className="mb-4">
             {/* Mobile-first responsive layout */}
             <div className="space-y-3 sm:space-y-0">
@@ -933,11 +933,11 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
 
         {/* Debate Topic Display */}
         {debate.topic && (
-          <div className="max-w-4xl mx-auto mb-6">
+          <div className="max-w-none sm:max-w-4xl mx-auto mb-6">
             <Card className="bg-zinc-900/50 border-zinc-700 p-4">
               <div className="text-center">
                 <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Debate Topic</h3>
-                <p className="text-zinc-300 text-base sm:text-lg break-words px-2 sm:px-0">{debate.topic}</p>
+                <p className="text-zinc-300 text-base sm:text-lg break-words">{debate.topic}</p>
                 <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mt-4 text-sm text-zinc-400">
                   <span>
                     Round: {debate.arguments.length > 0 ? Math.max(...debate.arguments.map(arg => arg.round)) : 0}/
@@ -952,7 +952,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
       </div>
 
       {/* Debate Content */}
-      <div className="max-w-6xl mx-auto space-y-6 px-2 sm:px-0">
+      <div className="max-w-none sm:max-w-6xl mx-auto space-y-6">
         {Object.keys(argumentsByRound).length > 0 && (
           <div className="space-y-8">
             {Object.entries(argumentsByRound)
@@ -994,7 +994,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                                 <p className="text-green-300 font-medium mb-1 text-sm sm:text-base truncate">
                                   {argument.personaName}
                                 </p>
-                                <div className="text-zinc-300 text-sm leading-relaxed">
+                                <div className="text-zinc-300 text-xs leading-relaxed">
                                   <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
