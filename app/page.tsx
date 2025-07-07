@@ -82,7 +82,7 @@ export default function Home() {
 
               <Button
                 size="sm"
-                className="bg-orange-500 text-black hover:bg-orange-600"
+                className="bg-orange-500 text-black hover:bg-orange-600 hidden sm:flex"
                 onClick={() => router.push("/app")}
               >
                 <Rocket className="w-4 h-4 mr-2" />

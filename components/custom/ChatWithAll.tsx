@@ -352,11 +352,11 @@ const ChatWithAll = () => {
           <Button
             onClick={handleDownloadPersonas}
             variant="outline"
-            className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-6 h-[42px]"
+            className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-6 h-[42px] "
             disabled={personas.length === 0}
           >
-            <Download className="w-4 h-4 mr-2" />
-            Download Personas
+            <Download className="w-4 h-4" />
+            <span className="ml-2 hidden sm:block">Download Personas</span>
           </Button>
         </div>
 
@@ -401,7 +401,7 @@ const ChatWithAll = () => {
         {/* Central Text Field */}
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="mb-4">
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-col sm:flex-row gap-2 mb-2">
               <input
                 type="text"
                 value={inputValue}
@@ -414,33 +414,35 @@ const ChatWithAll = () => {
                 className="flex-1 px-6 py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-lg"
                 disabled={isLoading}
               />
-              <Button
-                type="button"
-                variant="outline"
-                className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[58px] w-[58px] flex items-center justify-center"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-              >
-                <ImageIcon className="w-5 h-5" />
-              </Button>
-              <Button
-                type="submit"
-                variant="outline"
-                className="text-white px-8 h-[58px] flex items-center justify-center"
-                disabled={isLoading || (!inputValue.trim() && uploadedImages.length === 0)}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    {isGeneratingPersonas ? "Creating..." : "Sending..."}
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5 mr-2" />
-                    Send
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[58px] w-[58px] flex items-center justify-center"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                >
+                  <ImageIcon className="w-5 h-5" />
+                </Button>
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className="text-white px-8 h-[58px] flex items-center justify-center flex-1 sm:flex-none"
+                  disabled={isLoading || (!inputValue.trim() && uploadedImages.length === 0)}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      {isGeneratingPersonas ? "Creating..." : "Sending..."}
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5 mr-2" />
+                      Send
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {/* Hidden file input */}
