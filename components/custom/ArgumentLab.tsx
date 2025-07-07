@@ -866,7 +866,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
               </div>
 
               {/* Controls row - stacked on mobile, spaced on larger screens */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-3">
                 <select
                   value={maxRounds}
                   onChange={e => setMaxRounds(Number(e.target.value))}
