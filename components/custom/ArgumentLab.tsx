@@ -702,19 +702,19 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
   return (
     <div className="mt-12">
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Users className="w-6 h-6" />
+            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
               Argument Lab
             </h2>
             <p className="text-zinc-400 text-sm mt-1">Explore different perspectives through structured debates</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               onClick={handleDownloadDebate}
               variant="outline"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-4 h-[42px]"
+              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-4 h-[42px] w-full sm:w-auto"
               disabled={debate.arguments.length === 0}
             >
               <Download className="w-4 h-4 mr-2" />
@@ -723,7 +723,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
             <Button
               onClick={handleReset}
               variant="outline"
-              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-4 h-[42px]"
+              className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 px-4 h-[42px] w-full sm:w-auto"
               disabled={isLoading}
             >
               <RotateCcw className="w-4 h-4 mr-2" />
@@ -825,33 +825,39 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
         {/* Central Input Field */}
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleStartDebate} className="mb-4">
-            <div className="flex gap-2 mb-2">
-              <input
-                type="text"
-                value={inputTopic}
-                onChange={e => setInputTopic(e.target.value)}
-                placeholder={
-                  personas.length === 0
-                    ? "Enter a topic for debate or upload images (e.g., 'AI will replace human creativity')"
-                    : "Enter a new debate topic or upload images..."
-                }
-                className="flex-1 px-6 py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-lg"
-                disabled={isLoading}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[58px] w-[58px] flex items-center justify-center"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-              >
-                <ImageIcon className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center gap-2">
+            {/* Mobile-first responsive layout */}
+            <div className="space-y-3 sm:space-y-0">
+              {/* Input row */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={inputTopic}
+                  onChange={e => setInputTopic(e.target.value)}
+                  placeholder={
+                    personas.length === 0
+                      ? "Enter a topic for debate or upload images (e.g., 'AI will replace human creativity')"
+                      : "Enter a new debate topic or upload images..."
+                  }
+                  className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 text-base sm:text-lg"
+                  disabled={isLoading}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="text-zinc-400 border-zinc-700 hover:bg-zinc-800 h-[50px] w-[50px] sm:h-[58px] sm:w-[58px] flex items-center justify-center flex-shrink-0"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                >
+                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
+              </div>
+
+              {/* Controls row - stacked on mobile, inline on larger screens */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
                 <select
                   value={maxRounds}
                   onChange={e => setMaxRounds(Number(e.target.value))}
-                  className="px-4 py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 h-[58px]"
+                  className="px-4 py-3 sm:py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 h-[50px] sm:h-[58px] sm:w-auto"
                   disabled={isLoading}
                 >
                   <option value={1}>1 Round</option>
@@ -862,17 +868,17 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                 <Button
                   type="submit"
                   variant="outline"
-                  className="text-white px-8 h-[58px] flex items-center justify-center"
+                  className="text-white px-6 sm:px-8 h-[50px] sm:h-[58px] flex items-center justify-center w-full sm:w-auto"
                   disabled={isLoading || (!inputTopic.trim() && uploadedImages.length === 0)}
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
                       {isGeneratingPersonas ? "Preparing..." : "Starting..."}
                     </>
                   ) : (
                     <>
-                      <Play className="w-5 h-5 mr-2" />
+                      <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                       Start Debate
                     </>
                   )}
@@ -917,9 +923,9 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
           <div className="max-w-4xl mx-auto mb-6">
             <Card className="bg-zinc-900/50 border-zinc-700 p-4">
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-white mb-2">Debate Topic</h3>
-                <p className="text-zinc-300 text-lg">{debate.topic}</p>
-                <div className="flex justify-center gap-4 mt-4 text-sm text-zinc-400">
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">Debate Topic</h3>
+                <p className="text-zinc-300 text-base sm:text-lg break-words px-2 sm:px-0">{debate.topic}</p>
+                <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mt-4 text-sm text-zinc-400">
                   <span>
                     Round: {debate.currentRound}/{maxRounds}
                   </span>
@@ -932,7 +938,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
       </div>
 
       {/* Debate Content */}
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto space-y-6 px-2 sm:px-0">
         {Object.keys(argumentsByRound).length > 0 && (
           <div className="space-y-8">
             {Object.entries(argumentsByRound)
@@ -946,7 +952,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                     <div className="flex-1 h-px bg-zinc-700"></div>
                   </div>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* For arguments */}
                     <div className="space-y-4">
                       <h4 className="text-sm font-semibold text-green-400 flex items-center gap-2">
@@ -956,16 +962,18 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                       {roundArguments
                         .filter(arg => arg.position === "for")
                         .map((argument, index) => (
-                          <Card key={index} className="bg-green-900/20 border-green-800/50 p-4">
-                            <div className="flex items-start gap-3">
-                              <Avatar className="w-10 h-10 flex-shrink-0">
+                          <Card key={index} className="bg-green-900/20 border-green-800/50 p-3 sm:p-4">
+                            <div className="flex items-start gap-2 sm:gap-3">
+                              <Avatar className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
                                 <AvatarImage src={argument.personaImage} alt={argument.personaName} />
-                                <AvatarFallback className="bg-gradient-to-br from-green-500 to-green-600 text-white">
+                                <AvatarFallback className="bg-gradient-to-br from-green-500 to-green-600 text-white text-xs sm:text-sm">
                                   {argument.personaName.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="flex-1">
-                                <p className="text-green-300 font-medium mb-1">{argument.personaName}</p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-green-300 font-medium mb-1 text-sm sm:text-base truncate">
+                                  {argument.personaName}
+                                </p>
                                 <div className="text-zinc-300 text-sm leading-relaxed">
                                   <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
@@ -1008,16 +1016,18 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                       {roundArguments
                         .filter(arg => arg.position === "against")
                         .map((argument, index) => (
-                          <Card key={index} className="bg-red-900/20 border-red-800/50 p-4">
-                            <div className="flex items-start gap-3">
-                              <Avatar className="w-10 h-10 flex-shrink-0">
+                          <Card key={index} className="bg-red-900/20 border-red-800/50 p-3 sm:p-4">
+                            <div className="flex items-start gap-2 sm:gap-3">
+                              <Avatar className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
                                 <AvatarImage src={argument.personaImage} alt={argument.personaName} />
-                                <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-600 text-white">
+                                <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-600 text-white text-xs sm:text-sm">
                                   {argument.personaName.charAt(0).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="flex-1">
-                                <p className="text-red-300 font-medium mb-1">{argument.personaName}</p>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-red-300 font-medium mb-1 text-sm sm:text-base truncate">
+                                  {argument.personaName}
+                                </p>
                                 <div className="text-zinc-300 text-sm leading-relaxed">
                                   <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
@@ -1066,13 +1076,13 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
               <div className="flex-1 h-px bg-zinc-700"></div>
             </div>
 
-            <Card className="bg-zinc-900/80 border-zinc-700 p-6">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-5 h-5 text-white" />
+            <Card className="bg-zinc-900/80 border-zinc-700 p-4 sm:p-6">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-white font-medium mb-2">Key Points & Takeaways</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-white font-medium mb-2 text-sm sm:text-base">Key Points & Takeaways</h3>
                   <div className="text-zinc-300 text-sm leading-relaxed">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
