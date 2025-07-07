@@ -1,8 +1,18 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { MessageSquare, Users, Zap } from "lucide-react";
 import ChatWithAll from "@/components/custom/ChatWithAll";
+import ArgumentLab from "@/components/custom/ArgumentLab";
 import PersonaGrid from "@/components/custom/PersonaGrid";
 import { PersonaProvider } from "@/contexts/PersonaContext";
 
+type Mode = "chat" | "debate";
+
 export default function Page() {
+  const [mode, setMode] = useState<Mode>("chat");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950">
       {/* Background Pattern */}
@@ -32,21 +42,63 @@ export default function Page() {
           </div>
         </div>
 
+        {/* Mode Switcher */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center bg-zinc-900/50 backdrop-blur-sm rounded-xl border border-zinc-800 p-1">
+            <Button
+              variant={mode === "chat" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setMode("chat")}
+              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-200 ${
+                mode === "chat"
+                  ? "bg-white text-black hover:bg-zinc-200"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              }`}
+            >
+              <MessageSquare className="w-4 h-4" />
+              Chat Mode
+            </Button>
+            <Button
+              variant={mode === "debate" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setMode("debate")}
+              className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-all duration-200 ${
+                mode === "debate"
+                  ? "bg-white text-black hover:bg-zinc-200"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              Argument Lab
+            </Button>
+          </div>
+        </div>
+
         <PersonaProvider>
-          {/* Chat Section */}
+          {/* Interactive Section */}
           <div className="mb-20">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-3">Interactive Conversations</h2>
+              <h2 className="text-3xl font-bold text-white mb-3">
+                {mode === "chat" ? "Interactive Conversations" : "Structured Debates"}
+              </h2>
               <p className="text-zinc-400 text-lg">
-                Engage with all personas simultaneously and compare their unique perspectives on any topic.
+                {mode === "chat"
+                  ? "Engage with all personas simultaneously and compare their unique perspectives on any topic."
+                  : "Watch personas with different viewpoints engage in structured debates to reveal blind spots in your thinking."}
               </p>
             </div>
 
             <div className="relative">
               {/* Subtle background glow */}
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-teal-500/5 to-cyan-500/5 rounded-3xl blur-xl"></div>
+              <div
+                className={`absolute inset-0 rounded-3xl blur-xl ${
+                  mode === "chat"
+                    ? "bg-gradient-to-r from-emerald-500/5 via-teal-500/5 to-cyan-500/5"
+                    : "bg-gradient-to-r from-orange-500/5 via-red-500/5 to-pink-500/5"
+                }`}
+              ></div>
               <div className="relative bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-zinc-800 p-8">
-                <ChatWithAll />
+                {mode === "chat" ? <ChatWithAll /> : <ArgumentLab />}
               </div>
             </div>
           </div>
