@@ -142,6 +142,19 @@ const ArgumentLab = () => {
     }
   }, [debate, isClientMounted]);
 
+  // Update debate arguments with new avatar images when personas are updated
+  useEffect(() => {
+    if (personas.length > 0 && debate.arguments.length > 0) {
+      setDebate(prevDebate => ({
+        ...prevDebate,
+        arguments: prevDebate.arguments.map(arg => {
+          const matchingPersona = personas.find(p => p.name === arg.personaName);
+          return matchingPersona ? { ...arg, personaImage: matchingPersona.image } : arg;
+        }),
+      }));
+    }
+  }, [personas]);
+
   // Cleanup image URLs on component unmount
   useEffect(() => {
     return () => {
@@ -852,12 +865,12 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                 </Button>
               </div>
 
-              {/* Controls row - stacked on mobile, inline on larger screens */}
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
+              {/* Controls row - stacked on mobile, spaced on larger screens */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <select
                   value={maxRounds}
                   onChange={e => setMaxRounds(Number(e.target.value))}
-                  className="px-4 py-3 sm:py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 h-[50px] sm:h-[58px] sm:w-auto"
+                  className="px-4 py-3 sm:py-4 bg-zinc-800 border border-zinc-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-zinc-500 h-[50px] sm:h-[58px] sm:min-w-[140px]"
                   disabled={isLoading}
                 >
                   <option value={1}>1 Round</option>
@@ -868,7 +881,7 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                 <Button
                   type="submit"
                   variant="outline"
-                  className="text-white px-6 sm:px-8 h-[50px] sm:h-[58px] flex items-center justify-center w-full sm:w-auto"
+                  className="text-white px-6 sm:px-8 h-[50px] sm:h-[58px] flex items-center justify-center w-full sm:w-auto sm:min-w-[140px]"
                   disabled={isLoading || (!inputTopic.trim() && uploadedImages.length === 0)}
                 >
                   {isLoading ? (
@@ -927,7 +940,8 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                 <p className="text-zinc-300 text-base sm:text-lg break-words px-2 sm:px-0">{debate.topic}</p>
                 <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mt-4 text-sm text-zinc-400">
                   <span>
-                    Round: {debate.currentRound}/{maxRounds}
+                    Round: {debate.arguments.length > 0 ? Math.max(...debate.arguments.map(arg => arg.round)) : 0}/
+                    {debate.arguments.length > 0 ? Math.max(...debate.arguments.map(arg => arg.round)) : 0}
                   </span>
                   <span>Arguments: {debate.arguments.length}</span>
                 </div>
@@ -965,7 +979,13 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                           <Card key={index} className="bg-green-900/20 border-green-800/50 p-3 sm:p-4">
                             <div className="flex items-start gap-2 sm:gap-3">
                               <Avatar className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
-                                <AvatarImage src={argument.personaImage} alt={argument.personaName} />
+                                {argument.personaImage ? (
+                                  <AvatarImage src={argument.personaImage} alt={argument.personaName} />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-white animate-spin" />
+                                  </div>
+                                )}
                                 <AvatarFallback className="bg-gradient-to-br from-green-500 to-green-600 text-white text-xs sm:text-sm">
                                   {argument.personaName.charAt(0).toUpperCase()}
                                 </AvatarFallback>
@@ -1019,7 +1039,13 @@ Keep your argument concise but powerful (2-3 paragraphs maximum).`;
                           <Card key={index} className="bg-red-900/20 border-red-800/50 p-3 sm:p-4">
                             <div className="flex items-start gap-2 sm:gap-3">
                               <Avatar className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
-                                <AvatarImage src={argument.personaImage} alt={argument.personaName} />
+                                {argument.personaImage ? (
+                                  <AvatarImage src={argument.personaImage} alt={argument.personaName} />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                                    <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 text-white animate-spin" />
+                                  </div>
+                                )}
                                 <AvatarFallback className="bg-gradient-to-br from-red-500 to-red-600 text-white text-xs sm:text-sm">
                                   {argument.personaName.charAt(0).toUpperCase()}
                                 </AvatarFallback>
