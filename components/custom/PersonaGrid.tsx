@@ -105,7 +105,7 @@ const PersonaGrid: React.FC = () => {
       {/* Theme input field - shown when no personas and not loading */}
       {personas.length === 0 && !isLoading && (
         <div className="mb-8 p-6 bg-zinc-900 rounded-lg border border-zinc-800">
-          <div className="flex gap-3 mb-4">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <input
               type="text"
               placeholder="e.g., cyberpunk hackers, medieval knights, space explorers..."
@@ -117,7 +117,7 @@ const PersonaGrid: React.FC = () => {
             <button
               onClick={handleGenerateWithTheme}
               disabled={!theme.trim()}
-              className="px-6 py-2 bg-accent hover:bg-accent/80 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              className="px-6 py-2 bg-accent hover:bg-accent/80 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white rounded-lg transition-colors w-full sm:w-auto"
             >
               Generate
             </button>

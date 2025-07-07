@@ -117,11 +117,8 @@ export default function Page() {
             </div>
 
             <div className="relative">
-              {/* Subtle background glow */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 rounded-3xl blur-xl"></div>
-              <div className="relative bg-zinc-900/50 backdrop-blur-sm rounded-3xl border border-zinc-800 p-8">
-                <PersonaGrid />
-              </div>
+              <PersonaGrid />
             </div>
           </div>
 
