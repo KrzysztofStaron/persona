@@ -18,7 +18,7 @@ export default function Page() {
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),transparent_50%)]"></div>
 
-      <div className="relative container mx-auto px-6 py-12 max-w-7xl">
+      <div className="relative container mx-auto px-4 sm:px-6 py-12">
         {/* Header Section */}
         <div className="text-center mb-16">
           <div className="mb-8">
